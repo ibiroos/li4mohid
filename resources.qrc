@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/li4mohid" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
