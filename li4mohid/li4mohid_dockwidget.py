@@ -20,6 +20,11 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+
+
+
+
+
 """
 
 import os
@@ -65,17 +70,6 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
 
         self.exe = None
 
-        '''
-        self.comboBoxHydro.addItems(['artabro (MOHID, MeteoGalicia)', 
-                                     'arousa (MOHID, MeteoGalicia)' ,
-                                     'vigo (MOHID, MeteoGalicia)'   , 
-                                     'noia (MOHID, MeteoGalicia)'   , 
-                                     'iberia (ROMS, MeteoGalicia)'  , 
-                                     'cantabrico (ROMS, AZTI)'])
-
-        self.comboBoxWind.addItems(['wrf04km (WRF, MeteoGalicia)', 
-                                    'wrf12km (WRF, MeteoGalicia)'])
-        '''
 
         self.comboBoxHydro.addItems(['artabro', 
                                      'arousa' ,
