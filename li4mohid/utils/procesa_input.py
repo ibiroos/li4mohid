@@ -788,24 +788,23 @@ class application:
         full_flag = False
 
         for date in dates:
-
-            if date==today:
+            if date == today:
                 full_flag = True
 
             QgsMessageLog.logMessage('Downloading date: %s' % date.date().isoformat(), PLUGIN_NAME, level=Qgis.Info)
 
-            fichero_in   = date.strftime(self.meteo.template)
-            fichero_out  = '%s.nc' % fichero_in.split('/')[-1].split('.')[0]
+            fichero_in = date.strftime(self.meteo.template)
+            fichero_out = '%s.nc' % fichero_in.split('/')[-1].split('.')[0]
 
             start_meteo, end_meteo = self.descarga_wrf_alt(fichero_in, '%s/nc_fields/meteo/%s' % (self.APPLICATION_PATH, fichero_out), self.hydro.lon, self.hydro.lat, full_flag)
 
-            dt_inicio = ( start_meteo - self.start_time).total_seconds()
-            dt_fin    = ( end_meteo   - self.start_time).total_seconds()
+            dt_inicio = (start_meteo - self.start_time).total_seconds()
+            dt_fin = (end_meteo - self.start_time).total_seconds()
 
-            file            = SubElement(meteorology, 'file')
-            name            = SubElement(file, 'name', {'value': 'nc_fields/meteo/%s' % fichero_out})
-            startTime       = SubElement(file, 'startTime', {'value': '%10.1f' % dt_inicio})
-            endTime         = SubElement(file, 'endTime',   {'value': '%10.1f' % dt_fin})
+            file = SubElement(meteorology, 'file')
+            name = SubElement(file, 'name', {'value': 'nc_fields/meteo/%s' % fichero_out})
+            startTime = SubElement(file, 'startTime', {'value': '%10.1f' % dt_inicio})
+            endTime = SubElement(file, 'endTime',   {'value': '%10.1f' % dt_fin})
 
         # XML resultante:
         if DEBUG:
