@@ -104,12 +104,6 @@ def getvar_longname(f, nome_longs):
 
 
 
-
-
-
-
-
-
 def hf():
     file_in = r'http://150.145.136.27:8080/thredds/dodsC/Ibiza_NRT212/2020/2020_02/2020_02_12/HFR-Ibiza-Total_2020_02_12_1700.nc'
     print('vou a ler {0}'.format(file_in))
