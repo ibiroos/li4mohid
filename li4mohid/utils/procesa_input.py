@@ -66,20 +66,31 @@ class THREDDS_parser:
         }
 
     def __init__(self, model):
+        """
+        Initialization of class
+
+        :param model: string, name of model grid
+        """
 
         self.URL = self.URL_XML[model]
 
     def parse_dates(self):
+        """
+        Return a list with dates in the catalog, inverse sorted
+
+        :return: dates
+        """
 
         request.urlopen(self.URL)
-        contenido = ''.join([linea.decode("utf-8") for linea in request.urlopen(self.URL).readlines()])
-        XML = ElementTree.fromstring(contenido)
-        filtered = XML.findall('{http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0}dataset/{' +
+        content = ''.join([line.decode("utf-8") for line in request.urlopen(self.URL).readlines()])
+        xml = ElementTree.fromstring(content)
+        filtered = xml.findall('{http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0}dataset/{' +
                                'http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0}dataset')
         dates = [datetime.strptime(re.findall(r'\d{10}', element.attrib['name'])[0],
                                    '%Y%m%d%H') for element in filtered if '.nc' in element.attrib['name']]
 
-        if dates[0]<dates[-1]:
+        # inverse sorted if the order of catalogue is wrong
+        if dates[0] < dates[-1]:
             dates.reverse()
         return dates
 
@@ -118,7 +129,7 @@ class modelGrid:
         for key in origen.variables.keys():
             try:
                 standard_names_to_var[origen.variables[key].standard_name] = key
-            except:
+            except Exception:
                 pass
 
         # Search by standard_name attribute:
