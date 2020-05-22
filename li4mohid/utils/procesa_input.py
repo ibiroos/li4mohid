@@ -12,7 +12,8 @@
   + Carlos F. Balseiro (4Gotas, cfbalseiro@4gotas.com)
   + Pedro Montero (INTECMAR, pmontero@intecmar.gal)
 * *license:* Copyright (c) 2020 INTECMAR 2020. Lincesed under MIT
-* *funding: MYCOAST European Project
+* *funding:* MYCOAST  Interreg Atlantic Programme, Project nr. EAPA 285/2016
+             http://www.mycoas-project.org
 * *version:* 0.0.1
 
 * *Purpose:* All classes to process input from THREDDS
