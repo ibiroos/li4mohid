@@ -329,7 +329,11 @@ class application:
         # Execution parameters:
         parameters = self.XML.findall('execution/parameters')[0] # Only one group per file
 
-        parameter = SubElement(parameters, 'parameter', {'key': "Start", 'value': start.strftime('%Y %m %d %H %M %S'), 'comment':"Date of initial instant", 'units_comment':"space delimited ISO 8601 format up to seconds"})
+        parameter = SubElement(parameters,
+                               'parameter',
+                               {'key': "Start", 'value': start.strftime('%Y %m %d %H %M %S'),
+                                'comment': "Date of initial instant",
+                                'units_comment': "space delimited ISO 8601 format up to seconds"})
         parameter = SubElement(parameters, 'parameter', {'key': "End", 'value': end.strftime('%Y %m %d %H %M %S')  , 'comment':"Date of final instant"  , 'units_comment':"ISO format"})
         parameter = SubElement(parameters, 'parameter', {'key': "Integrator", 'value': "3"                                , 'comment':"Integration Algorithm 1:Euler, 2:Multi-Step Euler, 3:RK4 (default=1)"})
         parameter = SubElement(parameters, 'parameter', {'key': "Threads", 'value': "4"                                , 'comment':"Computation threads for shared memory computation (default=auto)"})
@@ -606,70 +610,55 @@ class application:
 
         # Optional translation of varnames:
         variables_destino = [u'time',
-                            u'longitude'  ,
-                            u'latitude'  ,
-                            u'u10'  ,
-                            u'v10'   ]
-
+                             u'longitude',
+                             u'latitude',
+                             u'u10',
+                             u'v10']
         lon = origen.variables['longitude'][:]
         lat = origen.variables['latitude'][:]
 
         nt = 24
-
         if full_flag:
             nt = len(origen.dimensions['time'])
 
-        original_points     = np.column_stack((lon.flatten(), lat.flatten()))
-        destination_points  = np.column_stack((Lon.flatten(), Lat.flatten()))
-        kd     = cKDTree(original_points)
+        original_points = np.column_stack((lon.flatten(), lat.flatten()))
+        destination_points = np.column_stack((Lon.flatten(), Lat.flatten()))
+        kd = cKDTree(original_points)
         distancia, indice = kd.query(destination_points)
 
         variables = OrderedDict(zip(variables_destino, variables_origen))
 
         destino = Dataset(filename=f_destino, mode='w', format='NETCDF4', clobber=True)
-        
         destino.createDimension('time', None)
         destino.createDimension('longitude', len(Lon[0,:]))
         destino.createDimension('latitude', len(Lat[:,0]))
        
         for local, remoto in variables.items():
-
             QgsMessageLog.logMessage('---> Storing variable %s --> %s' % (remoto, local), PLUGIN_NAME, level=Qgis.Info)
-
             # Variable de origen:       
-            variable_origen  = origen.variables[remoto]
+            variable_origen = origen.variables[remoto]
 
-            if local=='time':
-
-                variable_destino = destino.createVariable(local,variable_origen.dtype,('time',))
+            if local == 'time':
+                variable_destino = destino.createVariable(local, variable_origen.dtype, ('time',))
                 times = num2date(variable_origen[0:nt], variable_origen.units)
                 variable_destino[:] = variable_origen[0:nt]
-
-            elif local=='longitude':
-
-                variable_destino = destino.createVariable(local,variable_origen.dtype,('longitude',))
+            elif local == 'longitude':
+                variable_destino = destino.createVariable(local, variable_origen.dtype, ('longitude',))
                 variable_destino[:] = Lon[0,:]
-
-            elif local=='latitude':
-
-                variable_destino = destino.createVariable(local,variable_origen.dtype,('latitude',))
+            elif local == 'latitude':
+                variable_destino = destino.createVariable(local, variable_origen.dtype, ('latitude',))
                 variable_destino[:] = Lat[:,0]
-
             else:
-
-                variable_destino = destino.createVariable(local,variable_origen.dtype,('time','latitude','longitude',))
-
+                variable_destino = destino.createVariable(local,
+                                                          variable_origen.dtype, ('time', 'latitude', 'longitude',))
                 destination_tmp = np.empty_like(variable_destino[:])
-                origin_tmp      = variable_origen[0:nt,:]
+                origin_tmp = variable_origen[0:nt,:]
 
                 for i in range(nt):
-
-                    destination_tmp[i,:] =  origin_tmp[i,:].flatten()[indice].reshape(Lon.shape)
-
+                    destination_tmp[i, :] = origin_tmp[i, :].flatten()[indice].reshape(Lon.shape)
                 variable_destino[:] = destination_tmp[:]
 
             atributos = variable_origen.ncattrs()
-
             for atributo in atributos:
                 if atributo not in ['scale_factor', 'add_offset', '_FillValue', '_ChunkSizes']:
                     variable_destino.setncattr(atributo, variable_origen.getncattr(atributo))
@@ -682,17 +671,16 @@ class application:
     def build_hydro_xml(self):
 
         dates = [self.start_time + timedelta(days=i) for i in range((self.end_time-self.start_time).days+1)]
-
         today = datetime.today()
         today = datetime(today.year, today.month, today.day)
 
         # Correct dates:
         dates = [min(date, today) for date in dates]
-        print('dates = ', dates)
+
         # XML generation:
         file_collection = self.XML_INPUTS
-        hydrodynamic    = SubElement(file_collection, 'hydrodynamic')
-        print('hydrodynamic = ', hydrodynamic)
+        hydrodynamic = SubElement(file_collection, 'hydrodynamic')
+
         # Remove existing child nodes from XML if any:
         for child in list(hydrodynamic):
             hydrodynamic.remove(child) 
@@ -709,21 +697,18 @@ class application:
                 full_flag = True
 
             QgsMessageLog.logMessage('Downloading date: %s' % date.date().isoformat(), PLUGIN_NAME, level=Qgis.Info)
+            fichero_in = date.strftime(self.hydro.template)
 
-            fichero_in   = date.strftime(self.hydro.template)
-            print('fichero_in ', fichero_in)
+            fichero_out = '%s.nc' % fichero_in.split('/')[-1].split('.')[0]
+            start_hydro, end_hydro = self.descarga(fichero_in, '%s/nc_fields/hydro/%s' %
+                                                   (self.APPLICATION_PATH, fichero_out), full_flag)
+            dt_inicio = (start_hydro - self.start_time).total_seconds()
+            dt_fin = (end_hydro - self.start_time).total_seconds()
 
-            fichero_out  = '%s.nc' % fichero_in.split('/')[-1].split('.')[0]
-            print('antes de descarga', date)
-            start_hydro, end_hydro = self.descarga(fichero_in, '%s/nc_fields/hydro/%s' % (self.APPLICATION_PATH, fichero_out), full_flag)
-            print('despois de descarga', start_hydro)
-            dt_inicio = ( start_hydro - self.start_time).total_seconds()
-            dt_fin    = ( end_hydro   - self.start_time).total_seconds()
-
-            file            = SubElement(hydrodynamic, 'file')
-            name            = SubElement(file, 'name', {'value': 'nc_fields/hydro/%s' % fichero_out})
-            startTime       = SubElement(file, 'startTime', {'value': '%10.1f' % dt_inicio})
-            endTime         = SubElement(file, 'endTime',   {'value': '%10.1f' % dt_fin})
+            file = SubElement(hydrodynamic, 'file')
+            name = SubElement(file, 'name', {'value': 'nc_fields/hydro/%s' % fichero_out})
+            startTime = SubElement(file, 'startTime', {'value': '%10.1f' % dt_inicio})
+            endTime = SubElement(file, 'endTime',   {'value': '%10.1f' % dt_fin})
 
         # XML resultante:
         if DEBUG:
@@ -738,11 +723,9 @@ class application:
         f.write(self.prettify(file_collection))
         f.close()
 
-
     def build_meteo_xml(self):
 
         dates = [self.start_time + timedelta(days=i) for i in range((self.end_time-self.start_time).days+1)]
-
         today = datetime.today()
         today = datetime(today.year, today.month, today.day)
 
@@ -772,7 +755,10 @@ class application:
             fichero_in = date.strftime(self.meteo.template)
             fichero_out = '%s.nc' % fichero_in.split('/')[-1].split('.')[0]
 
-            start_meteo, end_meteo = self.descarga_wrf_alt(fichero_in, '%s/nc_fields/meteo/%s' % (self.APPLICATION_PATH, fichero_out), self.hydro.lon, self.hydro.lat, full_flag)
+            start_meteo, end_meteo = self.descarga_wrf_alt(fichero_in, '%s/nc_fields/meteo/%s' %
+                                                           (self.APPLICATION_PATH, fichero_out),
+                                                           self.hydro.lon,
+                                                           self.hydro.lat, full_flag)
 
             dt_inicio = (start_meteo - self.start_time).total_seconds()
             dt_fin = (end_meteo - self.start_time).total_seconds()
@@ -803,11 +789,11 @@ class application:
         pr = vectorlayer.dataProvider()
 
         # Creamos aquí los campos que sea necesario introducir cuando se define un origen:
-        pr.addAttributes([QgsField("id"    , QVariant.Int),
-                          QgsField("name"  , QVariant.String),
-                          QgsField("rate"  , QVariant.Double),
-                          QgsField("start" , QVariant.Double),
-                          QgsField("end"   , QVariant.Double),
+        pr.addAttributes([QgsField("id", QVariant.Int),
+                          QgsField("name", QVariant.String),
+                          QgsField("rate", QVariant.Double),
+                          QgsField("start", QVariant.Double),
+                          QgsField("end", QVariant.Double),
                           ])
 
         vectorlayer.updateFields()
