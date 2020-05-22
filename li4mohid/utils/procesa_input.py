@@ -510,87 +510,71 @@ class application:
         f.close()
 
     @staticmethod
-
     def descarga(f_origen, f_destino, full_flag):
 
         nt = 24
         if full_flag:
             nt = None
-        
         while True:
-
             try:
-
                 origen = Dataset(filename=f_origen, mode='r', set_auto_mask=False)
                 break
-
             except Exception as e:
 
-                QgsMessageLog.logMessage('Error en el procesamiento de la URL: %s' % f_origen, PLUGIN_NAME, level=Qgis.Critical)
-                QgsMessageLog.logMessage('Tipo de la excepcion es: %s' % type(e), PLUGIN_NAME, level=Qgis.Critical)
+                QgsMessageLog.logMessage('Error en el procesamiento de la URL: %s' %
+                                         f_origen, PLUGIN_NAME, level=Qgis.Critical)
+                QgsMessageLog.logMessage('Tipo de la excepcion es: %s' %
+                                         type(e), PLUGIN_NAME, level=Qgis.Critical)
 
-
-        variables_origen = [u'time' ,
-                  u'longitude'  ,
-                  u'latitude'  ,
-                  u'uo'    ,
-                  u'vo'     ]
+        variables_origen = [u'time',
+                            u'longitude',
+                            u'latitude',
+                            u'uo',
+                            u'vo']
 
         # Optional translation of varnames:
         variables_destino = variables_origen
-
+        # TODO: Change for a query how is the shape of longitude and latitude arrays
         if 'iberia' in f_origen:
-
-            lon   = origen.variables['longitude'][0,:]
-            lat   = origen.variables['latitude'][:,0]
-
+            lon = origen.variables['longitude'][0, :]
+            lat = origen.variables['latitude'][:, 0]
         else:
-            lon   = origen.variables['longitude'][:]
-            lat   = origen.variables['latitude'][:]
+            lon = origen.variables['longitude'][:]
+            lat = origen.variables['latitude'][:]
 
-        
         variables = OrderedDict(zip(variables_destino, variables_origen))
 
         destino = Dataset(filename=f_destino, mode='w', format='NETCDF4', clobber=True)
-        
         destino.createDimension('time', None)
         destino.createDimension('longitude', len(lon))
         destino.createDimension('latitude', len(lat))
        
         for local, remoto in variables.items():
-
             QgsMessageLog.logMessage('---> Storing variable %s --> %s' % (remoto, local), PLUGIN_NAME, level=Qgis.Info)
 
             # Variable de origen:       
-            variable_origen  = origen.variables[remoto]
-
+            variable_origen = origen.variables[remoto]
             dimensiones = len(variable_origen.dimensions)
 
-            ## Desactivamos el rescalado automatico:
+            # Desactivamos el rescalado automatico:
             # variable_origen.set_auto_scale(False)
 
             # Variable destino:
-            print(local)
-            if local=='time':
-
-                variable_destino = destino.createVariable(local,variable_origen.dtype,('time',))
+            if local == 'time':
+                variable_destino = destino.createVariable(local, variable_origen.dtype, ('time',))
                 times = num2date(variable_origen[0:nt], variable_origen.units)
                 variable_destino[:] = variable_origen[0:nt]
-
-            elif local=='longitude':
-
-                variable_destino = destino.createVariable(local,variable_origen.dtype,('longitude',))
+            elif local == 'longitude':
+                variable_destino = destino.createVariable(local, variable_origen.dtype, ('longitude',))
                 variable_destino[:] = lon[:]
-
             elif local == 'latitude':
-
-                variable_destino = destino.createVariable(local,variable_origen.dtype,('latitude',))
+                variable_destino = destino.createVariable(local, variable_origen.dtype, ('latitude',))
                 variable_destino[:] = lat[:]
-
             else:
-                variable_destino = destino.createVariable(local, variable_origen.dtype,('time', 'latitude', 'longitude',), fill_value='-9999.')
-                # variable_destino = destino.createVariable(local,variable_origen.dtype,('time','latitude','longitude',), fill_value=variable_origen._FillValue)
-
+                variable_destino = destino.createVariable(local,
+                                                          variable_origen.dtype, ('time', 'latitude', 'longitude',),
+                                                          fill_value=variable_origen._FillValue)
+                # TODO: Query the shape and not the model grid name
                 if 'iberia' in f_origen:
                     variable_destino[:] = variable_origen[0:nt, -1, :, :]
                 elif 'tamar' in f_origen:
@@ -601,13 +585,9 @@ class application:
                     variable_destino[:] = variable_origen[0:nt,:,:]
 
             atributos = variable_origen.ncattrs()
-
             for atributo in atributos:
-
-                if atributo not in ['scale_factor','add_offset','_FillValue','_ChunkSize']:
-
+                if atributo not in ['scale_factor', 'add_offset', '_FillValue', '_ChunkSize']:
                     variable_destino.setncattr(atributo, variable_origen.getncattr(atributo))
-
 
         destino.close()
         origen.close()
@@ -616,17 +596,16 @@ class application:
 
     @staticmethod
     def descarga_wrf_alt(f_origen, f_destino, Lon, Lat, full_flag):
-        
-        origen = Dataset(filename=f_origen, mode='r', set_auto_mask=False)
 
-        variables_origen = [u'time' ,
-                            u'longitude'  ,
-                            u'latitude'  ,
-                            u'u'    ,
-                            u'v'     ]
+        origen = Dataset(filename=f_origen, mode='r', set_auto_mask=False)
+        variables_origen = [u'time',
+                            u'longitude',
+                            u'latitude',
+                            u'u',
+                            u'v']
 
         # Optional translation of varnames:
-        variables_destino = [u'time' ,
+        variables_destino = [u'time',
                             u'longitude'  ,
                             u'latitude'  ,
                             u'u10'  ,
@@ -692,11 +671,8 @@ class application:
             atributos = variable_origen.ncattrs()
 
             for atributo in atributos:
-
-                if atributo not in ['scale_factor','add_offset','_FillValue','_ChunkSizes']:
-
+                if atributo not in ['scale_factor', 'add_offset', '_FillValue', '_ChunkSizes']:
                     variable_destino.setncattr(atributo, variable_origen.getncattr(atributo))
-
 
         destino.close()
         origen.close()
