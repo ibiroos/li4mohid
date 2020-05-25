@@ -111,6 +111,13 @@ class modelGrid:
     }
 
     def __init__(self, model):
+        """
+        Initialization of class modelGrid
+
+
+        :param model: string, model grid name
+
+        """
 
         self.gridName = model
         self.THREDDS_parser = THREDDS_parser(model)
