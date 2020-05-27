@@ -6,4 +6,4 @@ A QGIS plugin for Mohid Lagrangian, developed under MyCOAST project
   + Pedro Montero (INTECMAR, pmontero@intecmar.gal)
 * *license:* Copyright (c) INTECMAR 2020. Lincesed under MIT
 * *funding:* MYCOAST  Interreg Atlantic Programme, Project nr. EAPA 285/2016
-             http://www.mycoas-project.org
+             http://www.mycoast-project.org
