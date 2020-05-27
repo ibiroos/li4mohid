@@ -79,6 +79,7 @@ class THREDDS_parser:
         Return a list with dates in the catalog, inverse sorted
 
         :return: dates
+        :type: lst, list of dates
         """
 
         request.urlopen(self.URL)
@@ -115,7 +116,8 @@ class modelGrid:
         Initialization of class modelGrid
 
 
-        :param model: string, model grid name
+        :param model: model grid name
+        :type model: str
 
         """
 
