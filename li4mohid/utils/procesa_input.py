@@ -115,10 +115,8 @@ class modelGrid:
         """
         Initialization of class modelGrid
 
-
         :param model: model grid name
         :type model: str
-
         """
 
         self.gridName = model
@@ -234,7 +232,7 @@ class outputReader:
 
             vars = []
 
-            for i in range( nvars ):
+            for i in range(nvars):
                 var = reader.GetOutput().GetPointData().GetArrayName(i)
                 # print(var)
                 vars.append(var)
@@ -247,7 +245,7 @@ class outputReader:
                 QgsMessageLog.logMessage("Processing file: %s date: %s " %
                                          (fichero, fecha), PLUGIN_NAME, level=Qgis.Info)
 
-            # Las coordenadas se cogen así:
+            # Coordinates reading by this way:
             coordenadas = vtk_to_numpy(reader.GetOutput().GetPoints().GetData())
             x = coordenadas[:, 0]
             y = coordenadas[:, 1]
@@ -291,7 +289,6 @@ class outputReader:
         proyecto = QgsProject.instance()
         proyecto.addMapLayer(vectorlayer)
 
-
 class application:
 
     # The template string is the same for all applications::
@@ -329,11 +326,20 @@ class application:
 </case>
 '''
 
-    def __init__(self, APPLICATION_PATH, hydro_in_use, iface):
+    def __init__(self, application_path, hydro_in_use, iface):
 
-        self.APPLICATION_PATH = APPLICATION_PATH  # Set working path for application
+        self.application_path = application_path  # Set working path for application
         self.iface = iface  # Access to QGIS interface from this class
         self.hydro = modelGrid(hydro_in_use)
+
+        self.meteo = None
+        self.start_time = None
+        self.end_time = None
+        self.dt = None
+
+        self.xml = None
+        self.XML_INPUTS = None
+
 
     def setDates(self, start, end, output, meteo_in_use):
 
@@ -343,33 +349,33 @@ class application:
 
         self.start_time, self.end_time, self.dt = start, end, output
 
-        contenido = re.sub(r"[\n\t]*", "", self.input_string) # Get rid of tabs and new lines
-        self.XML  = ElementTree.fromstring(contenido)
+        content = re.sub(r"[\n\t]*", "", self.input_string)  # Get rid of tabs and new lines
+        self.xml = ElementTree.fromstring(content)
         self.XML_INPUTS = Element('file_collection')
 
         # Execution parameters:
-        parameters = self.XML.findall('execution/parameters')[0] # Only one group per file
+        parameters = self.xml.findall('execution/parameters')[0]  # Only one group per file
 
         parameter = SubElement(parameters,
                                'parameter',
                                {'key': "Start", 'value': start.strftime('%Y %m %d %H %M %S'),
                                 'comment': "Date of initial instant",
                                 'units_comment': "space delimited ISO 8601 format up to seconds"})
-        parameter = SubElement(parameters, 'parameter', {'key': "End", 'value': end.strftime('%Y %m %d %H %M %S')  , 'comment':"Date of final instant"  , 'units_comment':"ISO format"})
-        parameter = SubElement(parameters, 'parameter', {'key': "Integrator", 'value': "3"                                , 'comment':"Integration Algorithm 1:Euler, 2:Multi-Step Euler, 3:RK4 (default=1)"})
-        parameter = SubElement(parameters, 'parameter', {'key': "Threads", 'value': "4"                                , 'comment':"Computation threads for shared memory computation (default=auto)"})
-        parameter = SubElement(parameters, 'parameter', {'key': "OutputWriteTime", 'value':"%d" % output                      , 'comment':"Time out data (1/Hz)"    , 'units_comment':"seconds"})
+        # parameter = SubElement(parameters, 'parameter', {'key': "End", 'value': end.strftime('%Y %m %d %H %M %S')  , 'comment':"Date of final instant"  , 'units_comment':"ISO format"})
+        # parameter = SubElement(parameters, 'parameter', {'key': "Integrator", 'value': "3"                                , 'comment':"Integration Algorithm 1:Euler, 2:Multi-Step Euler, 3:RK4 (default=1)"})
+        # parameter = SubElement(parameters, 'parameter', {'key': "Threads", 'value': "4"                                , 'comment':"Computation threads for shared memory computation (default=auto)"})
+        # parameter = SubElement(parameters, 'parameter', {'key': "OutputWriteTime", 'value':"%d" % output                      , 'comment':"Time out data (1/Hz)"    , 'units_comment':"seconds"})
 
         # Simulation parameters:
-        simulation     = self.XML.findall('caseDefinitions/simulation')[0] # Only one group per file
+        # simulation = self.xml.findall('caseDefinitions/simulation')[0]  # Only one group per file
 
-        resolution     = SubElement(simulation, 'resolution'     ,{'dp':"50"    , 'units_comment':"metres (m)"})
-        timestep       = SubElement(simulation, 'timestep'       ,{'dt':"1200.0", 'units_comment':"seconds (s)"})
+        # resolution     = SubElement(simulation, 'resolution'     ,{'dp':"50"    , 'units_comment':"metres (m)"})
+        # timestep       = SubElement(simulation, 'timestep'       ,{'dt':"1200.0", 'units_comment':"seconds (s)"})
 
         # At first, only hydro limits the geographical span of sims:
-        Xmin, Ymin, Xmax, Ymax = self.hydro.get_boundingBox()
-        BoundingBoxMin = SubElement(simulation, 'BoundingBoxMin' ,{'x':"%f" % Xmin   , 'y':"%f" % Ymin, 'z':"-1", 'units_comment':"(deg,deg,m)"})
-        BoundingBoxMax = SubElement(simulation, 'BoundingBoxMax' ,{'x':"%f" % Xmax   , 'y':"%f" % Ymax, 'z': "1", 'units_comment':"(deg,deg,m)"})
+        # Xmin, Ymin, Xmax, Ymax = self.hydro.get_boundingBox()
+        # BoundingBoxMin = SubElement(simulation, 'BoundingBoxMin' ,{'x':"%f" % Xmin   , 'y':"%f" % Ymin, 'z':"-1", 'units_comment':"(deg,deg,m)"})
+        # BoundingBoxMax = SubElement(simulation, 'BoundingBoxMax' ,{'x':"%f" % Xmax   , 'y':"%f" % Ymax, 'z': "1", 'units_comment':"(deg,deg,m)"})
 
     def getSources(self):
 
@@ -380,18 +386,21 @@ class application:
 
         # Accedemos a la linea para obtener los vertices:
         for current, feature in enumerate(features):
+            feature_list = {'id': feature.attributes()[feature.fieldNameIndex('id')],
+                            'name': feature.attributes()[feature.fieldNameIndex('name')],
+                            'rate': feature.attributes()[feature.fieldNameIndex('rate')],
+                            'start': feature.attributes()[feature.fieldNameIndex('start')],
+                            'end': feature.attributes()[feature.fieldNameIndex('end')]}
             
-            listado = {}
-            
-            listado['id'] = feature.attributes()[feature.fieldNameIndex('id')]
-            listado['name'] = feature.attributes()[feature.fieldNameIndex('name')]
-            listado['rate'] = feature.attributes()[feature.fieldNameIndex('rate')]
-            listado['start'] = feature.attributes()[feature.fieldNameIndex('start')]
-            listado['end'] = feature.attributes()[feature.fieldNameIndex('end')]
+            # listado['id'] = feature.attributes()[feature.fieldNameIndex('id')]
+            # listado['name'] = feature.attributes()[feature.fieldNameIndex('name')]
+            # listado['rate'] = feature.attributes()[feature.fieldNameIndex('rate')]
+            # listado['start'] = feature.attributes()[feature.fieldNameIndex('start')]
+            # listado['end'] = feature.attributes()[feature.fieldNameIndex('end')]
             
             for point in feature.geometry().vertices():
-                listado['geometry'] = (point.x(), point.y())
-            points.append(listado)
+                feature_list['geometry'] = (point.x(), point.y())
+            points.append(feature_list)
 
         # Source definition:
         sourceDefinitions = self.XML.findall('caseDefinitions/sourceDefinitions')[0]  # Only one group per file
