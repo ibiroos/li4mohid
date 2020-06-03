@@ -96,7 +96,7 @@ class THREDDS_parser:
         return dates
 
 
-class modelGrid:
+class ModelGrid:
     """An abstraction of different model grids that will be used"""
 
     url_templates = {
@@ -113,7 +113,7 @@ class modelGrid:
 
     def __init__(self, model):
         """
-        Initialization of class modelGrid
+        Initialization of class ModelGrid
 
         :param model: model grid name
         :type model: str
@@ -155,18 +155,18 @@ class modelGrid:
     def get_vectorLayer(self):
         """Get model grid contour as a layer for QGIS"""
         vectorlayer = QgsVectorLayer("Linestring?crs=EPSG:4326", "Bounding box", "memory")
-        segmento = ogr.Geometry(ogr.wkbLineString)
+        segment = ogr.Geometry(ogr.wkbLineString)
 
         for X, Y in zip(self.lon[0, :], self.lat[0, :]):
-            segmento.AddPoint(X, Y)
+            segment.AddPoint(X, Y)
         for X, Y in zip(self.lon[:, -1], self.lat[:, -1]):
-            segmento.AddPoint(X, Y)
+            segment.AddPoint(X, Y)
         for X, Y in zip(self.lon[-1, ::-1], self.lat[-1, ::-1]):
-            segmento.AddPoint(X,Y)
+            segment.AddPoint(X,Y)
         for X, Y in zip(self.lon[::-1, 0], self.lat[::-1, 0]):
-            segmento.AddPoint(X, Y)
+            segment.AddPoint(X, Y)
 
-        geom = QgsGeometry.fromWkt(segmento.ExportToWkt())
+        geom = QgsGeometry.fromWkt(segment.ExportToWkt())
         feature = QgsFeature()
         feature.setGeometry(geom)
 
@@ -185,11 +185,18 @@ class modelGrid:
         proyecto.addMapLayer(vectorlayer)
 
     def get_boundingBox(self):
-        """ Get aproximate bounding box"""
+        """ Get aproximate bounding box
+        :return: Xmin, Xmax, Ymin, Ymax of the bounding box
+        :type: float, float, float, float
+        """
 
         return self.Xmin, self.Ymin, self.Xmax, self.Ymax
 
     def get_dates(self):
+        """ Get dates from thredds
+        :return: a list of dates
+        :type: lst
+        """
 
         return list(self.THREDDS_parser.parse_dates())
 
@@ -273,10 +280,10 @@ class outputReader:
                 features.append(feature)
                 i += 1
 
-        vectorlayer = QgsVectorLayer("Point?crs=epsg:4326", "temporary_points", "memory")
-        # vectorlayer = QgsVectorLayer("%s/output.shp&Point?crs=epsg:4326" % self.path, "temporary_points", "ogr")
+        vector_layer = QgsVectorLayer("Point?crs=epsg:4326", "temporary_points", "memory")
+        #  vector_layer = QgsVectorLayer("%s/output.shp&Point?crs=epsg:4326" % self.path, "temporary_points", "ogr")
 
-        pr = vectorlayer.dataProvider()
+        pr = vector_layer.dataProvider()
         pr.addAttributes([QgsField("id", QVariant.Int),
                           QgsField("time", QVariant.String),
                           QgsField("source", QVariant.Int),
@@ -284,12 +291,13 @@ class outputReader:
                           QgsField("state", QVariant.Int),
                           QgsField("age", QVariant.Double),
                           ])
-        vectorlayer.updateFields()
+        vector_layer.updateFields()
         pr.addFeatures(features)
         proyecto = QgsProject.instance()
-        proyecto.addMapLayer(vectorlayer)
+        proyecto.addMapLayer(vector_layer)
 
-class application:
+
+class Application:
 
     # The template string is the same for all applications::
     input_string = '''
@@ -319,7 +327,7 @@ class application:
         </sourceDefinitions>
         <constants>
             <BeachingLevel value="-3.0" comment="Level above which beaching can occur. Default = -3.0" units_comment="m" />
-            <BeachingStopProb value="80" comment="Probablity of beaching stopping a tracer. Default = 50%" units_comment="%" />
+            <BeachingStopProb value="80" comment="Probability of beaching stopping a tracer. Default = 50%" units_comment="%" />
             <DiffusionCoeff value="0.75" comment="Horizontal diffusion coefficient. Default = 1.0" units_comment="m2/s" />
         </constants>
     </caseDefinitions>
@@ -330,7 +338,7 @@ class application:
 
         self.application_path = application_path  # Set working path for application
         self.iface = iface  # Access to QGIS interface from this class
-        self.hydro = modelGrid(hydro_in_use)
+        self.hydro = ModelGrid(hydro_in_use)
 
         self.meteo = None
         self.start_time = None
@@ -345,7 +353,7 @@ class application:
 
         # Checks whether wind forcing is available
         if meteo_in_use is not None:
-            self.meteo = modelGrid(meteo_in_use)
+            self.meteo = ModelGrid(meteo_in_use)
 
         self.start_time, self.end_time, self.dt = start, end, output
 
@@ -811,13 +819,11 @@ class application:
         f.close()
 
     @staticmethod
-    def defineInputLayer():
+    def define_input_layer():
 
         # Input vector point layer
-        vectorlayer = QgsVectorLayer("Point?crs=epsg:4326", "Input points", "memory")
-
-        pr = vectorlayer.dataProvider()
-
+        vector_layer = QgsVectorLayer("Point?crs=epsg:4326", "Input points", "memory")
+        pr = vector_layer.dataProvider()
         # Creamos aquí los campos que sea necesario introducir cuando se define un origen:
         pr.addAttributes([QgsField("id", QVariant.Int),
                           QgsField("name", QVariant.String),
@@ -826,10 +832,10 @@ class application:
                           QgsField("end", QVariant.Double),
                           ])
 
-        vectorlayer.updateFields()
+        vector_layer.updateFields()
 
-        proyecto = QgsProject.instance()
-        proyecto.addMapLayer(vectorlayer)
+        project = QgsProject.instance()
+        project.addMapLayer(vector_layer)
 
 
 DEBUG = False
