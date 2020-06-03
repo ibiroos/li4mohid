@@ -84,11 +84,13 @@ class THREDDS_parser:
 
         request.urlopen(self.URL)
         content = ''.join([line.decode("utf-8") for line in request.urlopen(self.URL).readlines()])
+        print(self.URL, content)
         xml = ElementTree.fromstring(content)
         filtered = xml.findall('{http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0}dataset/{' +
                                'http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0}dataset')
+        print(filtered)
         dates = [datetime.strptime(re.findall(r'\d{10}', element.attrib['name'])[0],
-                                   '%Y%m%d%H') for element in filtered if '.nc' in element.attrib['name']]
+                                   '%Y%m%d%H') for element in filtered if 'R.nc' in element.attrib['name']]
 
         # inverse sorted if the order of catalogue is wrong
         if dates[0] < dates[-1]:
@@ -411,7 +413,7 @@ class Application:
             points.append(feature_list)
 
         # Source definition:
-        sourceDefinitions = self.XML.findall('caseDefinitions/sourceDefinitions')[0]  # Only one group per file
+        sourceDefinitions = self.xml.findall('caseDefinitions/sourceDefinitions')[0]  # Only one group per file
 
         # Remove existing child nodes from XML if any:
         for child in list(sourceDefinitions):
@@ -438,15 +440,15 @@ class Application:
     def write(self):
 
         # Writing configuration XML:
-        if not os.path.exists(self.APPLICATION_PATH):
-            os.makedirs(self.APPLICATION_PATH)
+        if not os.path.exists(self.application_path):
+            os.makedirs(self.application_path)
 
-        f = open('%s/%s.xml' % (self.APPLICATION_PATH, self.hydro.gridName),'w')
-        f.write(self.prettify(self.XML))
+        f = open('%s/%s.xml' % (self.application_path, self.hydro.gridName),'w')
+        f.write(self.prettify(self.xml))
         f.close()
 
         if DEBUG:
-            print(self.prettify(self.XML))
+            print(self.prettify(self.xml))
 
 
     def aux_data(self):
@@ -540,14 +542,14 @@ class Application:
     </dimensions>
 </naming>'''
 
-        if not os.path.exists('%s/data' % self.APPLICATION_PATH):
-            os.makedirs('%s/data' % self.APPLICATION_PATH)
+        if not os.path.exists('%s/data' % self.application_path):
+            os.makedirs('%s/data' % self.application_path)
 
-        f = open('%s/data/outputFields.xml' % self.APPLICATION_PATH,'w')
+        f = open('%s/data/outputFields.xml' % self.application_path,'w')
         f.write(outputFields)
         f.close()
 
-        f = open('%s/data/NamesLibrary.xml' % self.APPLICATION_PATH,'w')
+        f = open('%s/data/NamesLibrary.xml' % self.application_path,'w')
         f.write(NamesLibrary)
         f.close()
 
@@ -723,8 +725,8 @@ class Application:
         for child in list(hydrodynamic):
             hydrodynamic.remove(child) 
 
-        if not os.path.exists('%s/nc_fields/hydro' % self.APPLICATION_PATH):
-            os.makedirs('%s/nc_fields/hydro' % self.APPLICATION_PATH)
+        if not os.path.exists('%s/nc_fields/hydro' % self.application_path):
+            os.makedirs('%s/nc_fields/hydro' % self.application_path)
 
         # Loop to add files:
         full_flag = False
@@ -739,7 +741,7 @@ class Application:
 
             fichero_out = '%s.nc' % fichero_in.split('/')[-1].split('.')[0]
             start_hydro, end_hydro = self.descarga(fichero_in, '%s/nc_fields/hydro/%s' %
-                                                   (self.APPLICATION_PATH, fichero_out), full_flag)
+                                                   (self.application_path, fichero_out), full_flag)
             dt_inicio = (start_hydro - self.start_time).total_seconds()
             dt_fin = (end_hydro - self.start_time).total_seconds()
 
@@ -757,7 +759,7 @@ class Application:
         self.XML_INPUTS = file_collection
 
         # Stores xml for inputs that eventually will be overwritted:
-        f = open('%s/%s_inputs.xml' % (self.APPLICATION_PATH, self.hydro.gridName), 'w')
+        f = open('%s/%s_inputs.xml' % (self.application_path, self.hydro.gridName), 'w')
         f.write(self.prettify(file_collection))
         f.close()
 
@@ -778,8 +780,8 @@ class Application:
         for child in list(meteorology):
             meteorology.remove(child) 
 
-        if not os.path.exists('%s/nc_fields/meteo' % self.APPLICATION_PATH):
-            os.makedirs('%s/nc_fields/meteo' % self.APPLICATION_PATH)
+        if not os.path.exists('%s/nc_fields/meteo' % self.application_path):
+            os.makedirs('%s/nc_fields/meteo' % self.application_path)
 
         # Loop to add files:
         full_flag = False
@@ -794,7 +796,7 @@ class Application:
             fichero_out = '%s.nc' % fichero_in.split('/')[-1].split('.')[0]
 
             start_meteo, end_meteo = self.descarga_wrf_alt(fichero_in, '%s/nc_fields/meteo/%s' %
-                                                           (self.APPLICATION_PATH, fichero_out),
+                                                           (self.application_path, fichero_out),
                                                            self.hydro.lon,
                                                            self.hydro.lat, full_flag)
 
@@ -814,7 +816,7 @@ class Application:
         self.XML_INPUTS = file_collection
 
         # Stores xml for inputs that eventually will be overwritted:
-        f = open('%s/%s_inputs.xml' % (self.APPLICATION_PATH, self.hydro.gridName),'w')
+        f = open('%s/%s_inputs.xml' % (self.application_path, self.hydro.gridName),'w')
         f.write(self.prettify(file_collection))
         f.close()
 
@@ -842,6 +844,6 @@ DEBUG = False
 
 '''
 # Model results:
-reader = outputReader(app.APPLICATION_PATH, app.hydro.gridName)
+reader = outputReader(app.application_path, app.hydro.gridName)
 reader.get_layer()
 '''
