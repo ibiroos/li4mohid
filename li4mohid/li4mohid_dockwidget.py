@@ -59,7 +59,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         dir = QFileDialog.getExistingDirectory(self, "Select working directory")
 
         if dir:
-            self.APPLICATION_PATH = dir
+            self.application_path = dir
         else:
             pass # Needs to handle closing plugin in case of no dir selected
 
@@ -100,7 +100,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
     def apply(self):
 
         hydro = self.comboBoxHydro.currentText()
-        self.app = Application(self.APPLICATION_PATH, hydro, self.iface)
+        self.app = Application(self.application_path, hydro, self.iface)
         # Auxiliary layers:
         self.app.hydro.get_vectorLayer()
         self.app.define_input_layer()
@@ -139,12 +139,12 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         if self.windstate:
             self.app.build_meteo_xml()
         hydro = self.comboBoxHydro.currentText()
-        QgsMessageLog.logMessage('%s -i %s/%s.xml -o %s' % (self.exe, self.APPLICATION_PATH, hydro, self.APPLICATION_PATH), 'li4mohid', level=Qgis.Info)
-        os.chdir(self.APPLICATION_PATH)
-        os.system('%s -i %s/%s.xml -o %s' % (self.exe, self.APPLICATION_PATH, hydro, self.APPLICATION_PATH))
+        QgsMessageLog.logMessage('%s -i %s/%s.xml -o %s' % (self.exe, self.application_path, hydro, self.application_path), 'li4mohid', level=Qgis.Info)
+        os.chdir(self.application_path)
+        os.system('%s -i %s/%s.xml -o %s' % (self.exe, self.application_path, hydro, self.application_path))
 
         # Model results:
-        reader = outputReader(self.app.APPLICATION_PATH, hydro)
+        reader = outputReader(self.app.application_path, hydro)
         reader.get_layer()
 
 

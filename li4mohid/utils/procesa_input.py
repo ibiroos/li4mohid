@@ -692,7 +692,7 @@ class Application:
                 variable_destino = destino.createVariable(local,
                                                           variable_origen.dtype, ('time', 'latitude', 'longitude',))
                 destination_tmp = np.empty_like(variable_destino[:])
-                origin_tmp = variable_origen[0:nt,:]
+                origin_tmp = variable_origen[0:nt, :]
 
                 for i in range(nt):
                     destination_tmp[i, :] = origin_tmp[i, :].flatten()[indice].reshape(Lon.shape)
