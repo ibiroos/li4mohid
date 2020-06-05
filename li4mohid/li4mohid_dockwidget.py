@@ -112,7 +112,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
                                                       "All Files (*);;Exe Files (*.exe)")
 
         if self.exe is None:
-            pass # Needs to handle closing plugin in case of no executable is selected
+            pass  # Needs to handle closing plugin in case of no executable is selected
         else:
             QgsMessageLog.logMessage('MOHID executable: %s' % self.exe, 'li4mohid', level=Qgis.Info)
 

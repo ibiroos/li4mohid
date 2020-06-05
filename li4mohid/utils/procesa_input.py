@@ -214,7 +214,7 @@ class outputReader:
         root = ElementTree.parse('%s/%s' % (self.path, self.xml_file)).getroot()
 
         for parameter in root.findall('execution/parameters/parameter'):
-
+            print(parameter)
             if parameter.get('key') == 'Start':
                 start_time = datetime.strptime(parameter.get('value'), '%Y %m %d %H %M %S')
             if parameter.get('key') == 'End':
@@ -358,6 +358,7 @@ class Application:
             self.meteo = ModelGrid(meteo_in_use)
 
         self.start_time, self.end_time, self.dt = start, end, output
+        print('----------', start, end, output,'-------------------------------')
 
         content = re.sub(r"[\n\t]*", "", self.input_string)  # Get rid of tabs and new lines
         self.xml = ElementTree.fromstring(content)
@@ -371,21 +372,21 @@ class Application:
                                {'key': "Start", 'value': start.strftime('%Y %m %d %H %M %S'),
                                 'comment': "Date of initial instant",
                                 'units_comment': "space delimited ISO 8601 format up to seconds"})
-        # parameter = SubElement(parameters, 'parameter', {'key': "End", 'value': end.strftime('%Y %m %d %H %M %S')  , 'comment':"Date of final instant"  , 'units_comment':"ISO format"})
-        # parameter = SubElement(parameters, 'parameter', {'key': "Integrator", 'value': "3"                                , 'comment':"Integration Algorithm 1:Euler, 2:Multi-Step Euler, 3:RK4 (default=1)"})
-        # parameter = SubElement(parameters, 'parameter', {'key': "Threads", 'value': "4"                                , 'comment':"Computation threads for shared memory computation (default=auto)"})
-        # parameter = SubElement(parameters, 'parameter', {'key': "OutputWriteTime", 'value':"%d" % output                      , 'comment':"Time out data (1/Hz)"    , 'units_comment':"seconds"})
+        parameter = SubElement(parameters, 'parameter', {'key': "End", 'value': end.strftime('%Y %m %d %H %M %S')  , 'comment':"Date of final instant"  , 'units_comment':"ISO format"})
+        parameter = SubElement(parameters, 'parameter', {'key': "Integrator", 'value': "3"                                , 'comment':"Integration Algorithm 1:Euler, 2:Multi-Step Euler, 3:RK4 (default=1)"})
+        parameter = SubElement(parameters, 'parameter', {'key': "Threads", 'value': "4"                                , 'comment':"Computation threads for shared memory computation (default=auto)"})
+        parameter = SubElement(parameters, 'parameter', {'key': "OutputWriteTime", 'value':"%d" % output                      , 'comment':"Time out data (1/Hz)"    , 'units_comment':"seconds"})
 
         # Simulation parameters:
-        # simulation = self.xml.findall('caseDefinitions/simulation')[0]  # Only one group per file
+        simulation = self.xml.findall('caseDefinitions/simulation')[0]  # Only one group per file
 
-        # resolution     = SubElement(simulation, 'resolution'     ,{'dp':"50"    , 'units_comment':"metres (m)"})
-        # timestep       = SubElement(simulation, 'timestep'       ,{'dt':"1200.0", 'units_comment':"seconds (s)"})
+        resolution     = SubElement(simulation, 'resolution'     ,{'dp':"50"    , 'units_comment':"metres (m)"})
+        timestep       = SubElement(simulation, 'timestep'       ,{'dt':"1200.0", 'units_comment':"seconds (s)"})
 
         # At first, only hydro limits the geographical span of sims:
-        # Xmin, Ymin, Xmax, Ymax = self.hydro.get_boundingBox()
-        # BoundingBoxMin = SubElement(simulation, 'BoundingBoxMin' ,{'x':"%f" % Xmin   , 'y':"%f" % Ymin, 'z':"-1", 'units_comment':"(deg,deg,m)"})
-        # BoundingBoxMax = SubElement(simulation, 'BoundingBoxMax' ,{'x':"%f" % Xmax   , 'y':"%f" % Ymax, 'z': "1", 'units_comment':"(deg,deg,m)"})
+        Xmin, Ymin, Xmax, Ymax = self.hydro.get_boundingBox()
+        BoundingBoxMin = SubElement(simulation, 'BoundingBoxMin' ,{'x':"%f" % Xmin   , 'y':"%f" % Ymin, 'z':"-1", 'units_comment':"(deg,deg,m)"})
+        BoundingBoxMax = SubElement(simulation, 'BoundingBoxMax' ,{'x':"%f" % Xmax   , 'y':"%f" % Ymax, 'z': "1", 'units_comment':"(deg,deg,m)"})
 
     def getSources(self):
 
@@ -617,7 +618,8 @@ class Application:
             else:
                 variable_destino = destino.createVariable(local,
                                                           variable_origen.dtype, ('time', 'latitude', 'longitude',),
-                                                          fill_value=variable_origen._FillValue)
+                                                          fill_value=-999999,)
+                                                #          fill_value=variable_origen._FillValue)
                 # TODO: Query the shape and not the model grid name
                 if 'iberia' in f_origen:
                     variable_destino[:] = variable_origen[0:nt, -1, :, :]
@@ -626,7 +628,7 @@ class Application:
                 elif 'portugal' in f_origen:
                     variable_destino[:] = variable_origen[0:nt, -1, :, :]
                 else:
-                    variable_destino[:] = variable_origen[0:nt,:,:]
+                    variable_destino[:] = variable_origen[0:nt, :, :]
 
             atributos = variable_origen.ncattrs()
             for atributo in atributos:
@@ -684,10 +686,10 @@ class Application:
                 variable_destino[:] = variable_origen[0:nt]
             elif local == 'longitude':
                 variable_destino = destino.createVariable(local, variable_origen.dtype, ('longitude',))
-                variable_destino[:] = Lon[0,:]
+                variable_destino[:] = Lon[0, :]
             elif local == 'latitude':
                 variable_destino = destino.createVariable(local, variable_origen.dtype, ('latitude',))
-                variable_destino[:] = Lat[:,0]
+                variable_destino[:] = Lat[:, 0]
             else:
                 variable_destino = destino.createVariable(local,
                                                           variable_origen.dtype, ('time', 'latitude', 'longitude',))
