@@ -91,6 +91,7 @@ class THREDDS_parser:
         print(filtered)
         dates = [datetime.strptime(re.findall(r'\d{10}', element.attrib['name'])[0],
                                    '%Y%m%d%H') for element in filtered if 'R.nc' in element.attrib['name']]
+        # TODO: maybe another filter than R.nc
 
         # inverse sorted if the order of catalogue is wrong
         if dates[0] < dates[-1]:
@@ -624,7 +625,7 @@ class Application:
                 if 'iberia' in f_origen:
                     variable_destino[:] = variable_origen[0:nt, -1, :, :]
                 elif 'tamar' in f_origen:
-                    variable_destino[:] = variable_origen[0:nt, -1, :, :]
+                    variable_destino[:] = variable_origen[0:nt, 0, :, :]
                 elif 'portugal' in f_origen:
                     variable_destino[:] = variable_origen[0:nt, -1, :, :]
                 else:
