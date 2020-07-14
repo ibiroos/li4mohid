@@ -84,11 +84,14 @@ class THREDDS_parser:
 
         request.urlopen(self.URL)
         content = ''.join([line.decode("utf-8") for line in request.urlopen(self.URL).readlines()])
+        print(self.URL, content)
         xml = ElementTree.fromstring(content)
         filtered = xml.findall('{http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0}dataset/{' +
                                'http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0}dataset')
+        print(filtered)
         dates = [datetime.strptime(re.findall(r'\d{10}', element.attrib['name'])[0],
-                                   '%Y%m%d%H') for element in filtered if '.nc' in element.attrib['name']]
+                                   '%Y%m%d%H') for element in filtered if 'R.nc' in element.attrib['name']]
+        # TODO: maybe another filter than R.nc
 
         # inverse sorted if the order of catalogue is wrong
         if dates[0] < dates[-1]:
@@ -96,7 +99,7 @@ class THREDDS_parser:
         return dates
 
 
-class modelGrid:
+class ModelGrid:
     """An abstraction of different model grids that will be used"""
 
     url_templates = {
@@ -113,7 +116,7 @@ class modelGrid:
 
     def __init__(self, model):
         """
-        Initialization of class modelGrid
+        Initialization of class ModelGrid
 
         :param model: model grid name
         :type model: str
@@ -155,18 +158,18 @@ class modelGrid:
     def get_vectorLayer(self):
         """Get model grid contour as a layer for QGIS"""
         vectorlayer = QgsVectorLayer("Linestring?crs=EPSG:4326", "Bounding box", "memory")
-        segmento = ogr.Geometry(ogr.wkbLineString)
+        segment = ogr.Geometry(ogr.wkbLineString)
 
         for X, Y in zip(self.lon[0, :], self.lat[0, :]):
-            segmento.AddPoint(X, Y)
+            segment.AddPoint(X, Y)
         for X, Y in zip(self.lon[:, -1], self.lat[:, -1]):
-            segmento.AddPoint(X, Y)
+            segment.AddPoint(X, Y)
         for X, Y in zip(self.lon[-1, ::-1], self.lat[-1, ::-1]):
-            segmento.AddPoint(X,Y)
+            segment.AddPoint(X,Y)
         for X, Y in zip(self.lon[::-1, 0], self.lat[::-1, 0]):
-            segmento.AddPoint(X, Y)
+            segment.AddPoint(X, Y)
 
-        geom = QgsGeometry.fromWkt(segmento.ExportToWkt())
+        geom = QgsGeometry.fromWkt(segment.ExportToWkt())
         feature = QgsFeature()
         feature.setGeometry(geom)
 
@@ -185,11 +188,18 @@ class modelGrid:
         proyecto.addMapLayer(vectorlayer)
 
     def get_boundingBox(self):
-        """ Get aproximate bounding box"""
+        """ Get aproximate bounding box
+        :return: Xmin, Xmax, Ymin, Ymax of the bounding box
+        :type: float, float, float, float
+        """
 
         return self.Xmin, self.Ymin, self.Xmax, self.Ymax
 
     def get_dates(self):
+        """ Get dates from thredds
+        :return: a list of dates
+        :type: lst
+        """
 
         return list(self.THREDDS_parser.parse_dates())
 
@@ -205,7 +215,7 @@ class outputReader:
         root = ElementTree.parse('%s/%s' % (self.path, self.xml_file)).getroot()
 
         for parameter in root.findall('execution/parameters/parameter'):
-
+            print(parameter)
             if parameter.get('key') == 'Start':
                 start_time = datetime.strptime(parameter.get('value'), '%Y %m %d %H %M %S')
             if parameter.get('key') == 'End':
@@ -273,10 +283,10 @@ class outputReader:
                 features.append(feature)
                 i += 1
 
-        vectorlayer = QgsVectorLayer("Point?crs=epsg:4326", "temporary_points", "memory")
-        # vectorlayer = QgsVectorLayer("%s/output.shp&Point?crs=epsg:4326" % self.path, "temporary_points", "ogr")
+        vector_layer = QgsVectorLayer("Point?crs=epsg:4326", "temporary_points", "memory")
+        #  vector_layer = QgsVectorLayer("%s/output.shp&Point?crs=epsg:4326" % self.path, "temporary_points", "ogr")
 
-        pr = vectorlayer.dataProvider()
+        pr = vector_layer.dataProvider()
         pr.addAttributes([QgsField("id", QVariant.Int),
                           QgsField("time", QVariant.String),
                           QgsField("source", QVariant.Int),
@@ -284,12 +294,13 @@ class outputReader:
                           QgsField("state", QVariant.Int),
                           QgsField("age", QVariant.Double),
                           ])
-        vectorlayer.updateFields()
+        vector_layer.updateFields()
         pr.addFeatures(features)
         proyecto = QgsProject.instance()
-        proyecto.addMapLayer(vectorlayer)
+        proyecto.addMapLayer(vector_layer)
 
-class application:
+
+class Application:
 
     # The template string is the same for all applications::
     input_string = '''
@@ -319,7 +330,7 @@ class application:
         </sourceDefinitions>
         <constants>
             <BeachingLevel value="-3.0" comment="Level above which beaching can occur. Default = -3.0" units_comment="m" />
-            <BeachingStopProb value="80" comment="Probablity of beaching stopping a tracer. Default = 50%" units_comment="%" />
+            <BeachingStopProb value="80" comment="Probability of beaching stopping a tracer. Default = 50%" units_comment="%" />
             <DiffusionCoeff value="0.75" comment="Horizontal diffusion coefficient. Default = 1.0" units_comment="m2/s" />
         </constants>
     </caseDefinitions>
@@ -330,7 +341,7 @@ class application:
 
         self.application_path = application_path  # Set working path for application
         self.iface = iface  # Access to QGIS interface from this class
-        self.hydro = modelGrid(hydro_in_use)
+        self.hydro = ModelGrid(hydro_in_use)
 
         self.meteo = None
         self.start_time = None
@@ -345,9 +356,10 @@ class application:
 
         # Checks whether wind forcing is available
         if meteo_in_use is not None:
-            self.meteo = modelGrid(meteo_in_use)
+            self.meteo = ModelGrid(meteo_in_use)
 
         self.start_time, self.end_time, self.dt = start, end, output
+        print('----------', start, end, output,'-------------------------------')
 
         content = re.sub(r"[\n\t]*", "", self.input_string)  # Get rid of tabs and new lines
         self.xml = ElementTree.fromstring(content)
@@ -361,21 +373,21 @@ class application:
                                {'key': "Start", 'value': start.strftime('%Y %m %d %H %M %S'),
                                 'comment': "Date of initial instant",
                                 'units_comment': "space delimited ISO 8601 format up to seconds"})
-        # parameter = SubElement(parameters, 'parameter', {'key': "End", 'value': end.strftime('%Y %m %d %H %M %S')  , 'comment':"Date of final instant"  , 'units_comment':"ISO format"})
-        # parameter = SubElement(parameters, 'parameter', {'key': "Integrator", 'value': "3"                                , 'comment':"Integration Algorithm 1:Euler, 2:Multi-Step Euler, 3:RK4 (default=1)"})
-        # parameter = SubElement(parameters, 'parameter', {'key': "Threads", 'value': "4"                                , 'comment':"Computation threads for shared memory computation (default=auto)"})
-        # parameter = SubElement(parameters, 'parameter', {'key': "OutputWriteTime", 'value':"%d" % output                      , 'comment':"Time out data (1/Hz)"    , 'units_comment':"seconds"})
+        parameter = SubElement(parameters, 'parameter', {'key': "End", 'value': end.strftime('%Y %m %d %H %M %S')  , 'comment':"Date of final instant"  , 'units_comment':"ISO format"})
+        parameter = SubElement(parameters, 'parameter', {'key': "Integrator", 'value': "3"                                , 'comment':"Integration Algorithm 1:Euler, 2:Multi-Step Euler, 3:RK4 (default=1)"})
+        parameter = SubElement(parameters, 'parameter', {'key': "Threads", 'value': "4"                                , 'comment':"Computation threads for shared memory computation (default=auto)"})
+        parameter = SubElement(parameters, 'parameter', {'key': "OutputWriteTime", 'value':"%d" % output                      , 'comment':"Time out data (1/Hz)"    , 'units_comment':"seconds"})
 
         # Simulation parameters:
-        # simulation = self.xml.findall('caseDefinitions/simulation')[0]  # Only one group per file
+        simulation = self.xml.findall('caseDefinitions/simulation')[0]  # Only one group per file
 
-        # resolution     = SubElement(simulation, 'resolution'     ,{'dp':"50"    , 'units_comment':"metres (m)"})
-        # timestep       = SubElement(simulation, 'timestep'       ,{'dt':"1200.0", 'units_comment':"seconds (s)"})
+        resolution     = SubElement(simulation, 'resolution'     ,{'dp':"50"    , 'units_comment':"metres (m)"})
+        timestep       = SubElement(simulation, 'timestep'       ,{'dt':"1200.0", 'units_comment':"seconds (s)"})
 
         # At first, only hydro limits the geographical span of sims:
-        # Xmin, Ymin, Xmax, Ymax = self.hydro.get_boundingBox()
-        # BoundingBoxMin = SubElement(simulation, 'BoundingBoxMin' ,{'x':"%f" % Xmin   , 'y':"%f" % Ymin, 'z':"-1", 'units_comment':"(deg,deg,m)"})
-        # BoundingBoxMax = SubElement(simulation, 'BoundingBoxMax' ,{'x':"%f" % Xmax   , 'y':"%f" % Ymax, 'z': "1", 'units_comment':"(deg,deg,m)"})
+        Xmin, Ymin, Xmax, Ymax = self.hydro.get_boundingBox()
+        BoundingBoxMin = SubElement(simulation, 'BoundingBoxMin' ,{'x':"%f" % Xmin   , 'y':"%f" % Ymin, 'z':"-1", 'units_comment':"(deg,deg,m)"})
+        BoundingBoxMax = SubElement(simulation, 'BoundingBoxMax' ,{'x':"%f" % Xmax   , 'y':"%f" % Ymax, 'z': "1", 'units_comment':"(deg,deg,m)"})
 
     def getSources(self):
 
@@ -403,7 +415,7 @@ class application:
             points.append(feature_list)
 
         # Source definition:
-        sourceDefinitions = self.XML.findall('caseDefinitions/sourceDefinitions')[0]  # Only one group per file
+        sourceDefinitions = self.xml.findall('caseDefinitions/sourceDefinitions')[0]  # Only one group per file
 
         # Remove existing child nodes from XML if any:
         for child in list(sourceDefinitions):
@@ -430,15 +442,15 @@ class application:
     def write(self):
 
         # Writing configuration XML:
-        if not os.path.exists(self.APPLICATION_PATH):
-            os.makedirs(self.APPLICATION_PATH)
+        if not os.path.exists(self.application_path):
+            os.makedirs(self.application_path)
 
-        f = open('%s/%s.xml' % (self.APPLICATION_PATH, self.hydro.gridName),'w')
-        f.write(self.prettify(self.XML))
+        f = open('%s/%s.xml' % (self.application_path, self.hydro.gridName),'w')
+        f.write(self.prettify(self.xml))
         f.close()
 
         if DEBUG:
-            print(self.prettify(self.XML))
+            print(self.prettify(self.xml))
 
 
     def aux_data(self):
@@ -532,14 +544,14 @@ class application:
     </dimensions>
 </naming>'''
 
-        if not os.path.exists('%s/data' % self.APPLICATION_PATH):
-            os.makedirs('%s/data' % self.APPLICATION_PATH)
+        if not os.path.exists('%s/data' % self.application_path):
+            os.makedirs('%s/data' % self.application_path)
 
-        f = open('%s/data/outputFields.xml' % self.APPLICATION_PATH,'w')
+        f = open('%s/data/outputFields.xml' % self.application_path,'w')
         f.write(outputFields)
         f.close()
 
-        f = open('%s/data/NamesLibrary.xml' % self.APPLICATION_PATH,'w')
+        f = open('%s/data/NamesLibrary.xml' % self.application_path,'w')
         f.write(NamesLibrary)
         f.close()
 
@@ -607,16 +619,17 @@ class application:
             else:
                 variable_destino = destino.createVariable(local,
                                                           variable_origen.dtype, ('time', 'latitude', 'longitude',),
-                                                          fill_value=variable_origen._FillValue)
+                                                          fill_value=-999999,)
+                                                #          fill_value=variable_origen._FillValue)
                 # TODO: Query the shape and not the model grid name
                 if 'iberia' in f_origen:
                     variable_destino[:] = variable_origen[0:nt, -1, :, :]
                 elif 'tamar' in f_origen:
-                    variable_destino[:] = variable_origen[0:nt, -1, :, :]
+                    variable_destino[:] = variable_origen[0:nt, 0, :, :]
                 elif 'portugal' in f_origen:
                     variable_destino[:] = variable_origen[0:nt, -1, :, :]
                 else:
-                    variable_destino[:] = variable_origen[0:nt,:,:]
+                    variable_destino[:] = variable_origen[0:nt, :, :]
 
             atributos = variable_origen.ncattrs()
             for atributo in atributos:
@@ -674,15 +687,15 @@ class application:
                 variable_destino[:] = variable_origen[0:nt]
             elif local == 'longitude':
                 variable_destino = destino.createVariable(local, variable_origen.dtype, ('longitude',))
-                variable_destino[:] = Lon[0,:]
+                variable_destino[:] = Lon[0, :]
             elif local == 'latitude':
                 variable_destino = destino.createVariable(local, variable_origen.dtype, ('latitude',))
-                variable_destino[:] = Lat[:,0]
+                variable_destino[:] = Lat[:, 0]
             else:
                 variable_destino = destino.createVariable(local,
                                                           variable_origen.dtype, ('time', 'latitude', 'longitude',))
                 destination_tmp = np.empty_like(variable_destino[:])
-                origin_tmp = variable_origen[0:nt,:]
+                origin_tmp = variable_origen[0:nt, :]
 
                 for i in range(nt):
                     destination_tmp[i, :] = origin_tmp[i, :].flatten()[indice].reshape(Lon.shape)
@@ -715,8 +728,8 @@ class application:
         for child in list(hydrodynamic):
             hydrodynamic.remove(child) 
 
-        if not os.path.exists('%s/nc_fields/hydro' % self.APPLICATION_PATH):
-            os.makedirs('%s/nc_fields/hydro' % self.APPLICATION_PATH)
+        if not os.path.exists('%s/nc_fields/hydro' % self.application_path):
+            os.makedirs('%s/nc_fields/hydro' % self.application_path)
 
         # Loop to add files:
         full_flag = False
@@ -731,7 +744,7 @@ class application:
 
             fichero_out = '%s.nc' % fichero_in.split('/')[-1].split('.')[0]
             start_hydro, end_hydro = self.descarga(fichero_in, '%s/nc_fields/hydro/%s' %
-                                                   (self.APPLICATION_PATH, fichero_out), full_flag)
+                                                   (self.application_path, fichero_out), full_flag)
             dt_inicio = (start_hydro - self.start_time).total_seconds()
             dt_fin = (end_hydro - self.start_time).total_seconds()
 
@@ -749,7 +762,7 @@ class application:
         self.XML_INPUTS = file_collection
 
         # Stores xml for inputs that eventually will be overwritted:
-        f = open('%s/%s_inputs.xml' % (self.APPLICATION_PATH, self.hydro.gridName), 'w')
+        f = open('%s/%s_inputs.xml' % (self.application_path, self.hydro.gridName), 'w')
         f.write(self.prettify(file_collection))
         f.close()
 
@@ -770,8 +783,8 @@ class application:
         for child in list(meteorology):
             meteorology.remove(child) 
 
-        if not os.path.exists('%s/nc_fields/meteo' % self.APPLICATION_PATH):
-            os.makedirs('%s/nc_fields/meteo' % self.APPLICATION_PATH)
+        if not os.path.exists('%s/nc_fields/meteo' % self.application_path):
+            os.makedirs('%s/nc_fields/meteo' % self.application_path)
 
         # Loop to add files:
         full_flag = False
@@ -786,7 +799,7 @@ class application:
             fichero_out = '%s.nc' % fichero_in.split('/')[-1].split('.')[0]
 
             start_meteo, end_meteo = self.descarga_wrf_alt(fichero_in, '%s/nc_fields/meteo/%s' %
-                                                           (self.APPLICATION_PATH, fichero_out),
+                                                           (self.application_path, fichero_out),
                                                            self.hydro.lon,
                                                            self.hydro.lat, full_flag)
 
@@ -806,18 +819,16 @@ class application:
         self.XML_INPUTS = file_collection
 
         # Stores xml for inputs that eventually will be overwritted:
-        f = open('%s/%s_inputs.xml' % (self.APPLICATION_PATH, self.hydro.gridName),'w')
+        f = open('%s/%s_inputs.xml' % (self.application_path, self.hydro.gridName),'w')
         f.write(self.prettify(file_collection))
         f.close()
 
     @staticmethod
-    def defineInputLayer():
+    def define_input_layer():
 
         # Input vector point layer
-        vectorlayer = QgsVectorLayer("Point?crs=epsg:4326", "Input points", "memory")
-
-        pr = vectorlayer.dataProvider()
-
+        vector_layer = QgsVectorLayer("Point?crs=epsg:4326", "Input points", "memory")
+        pr = vector_layer.dataProvider()
         # Creamos aquí los campos que sea necesario introducir cuando se define un origen:
         pr.addAttributes([QgsField("id", QVariant.Int),
                           QgsField("name", QVariant.String),
@@ -826,16 +837,16 @@ class application:
                           QgsField("end", QVariant.Double),
                           ])
 
-        vectorlayer.updateFields()
+        vector_layer.updateFields()
 
-        proyecto = QgsProject.instance()
-        proyecto.addMapLayer(vectorlayer)
+        project = QgsProject.instance()
+        project.addMapLayer(vector_layer)
 
 
 DEBUG = False
 
 '''
 # Model results:
-reader = outputReader(app.APPLICATION_PATH, app.hydro.gridName)
+reader = outputReader(app.application_path, app.hydro.gridName)
 reader.get_layer()
 '''

@@ -32,17 +32,16 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import QDate, QTime, QDateTime, Qt, QVariant
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsField, QgsMessageLog, Qgis
 
-from .utils import THREDDS_parser, outputReader, modelGrid, application
-
+from .utils import THREDDS_parser, outputReader, ModelGrid, Application
+from .li4mohid_dockwidget_base import Ui_li4mohidDockWidgetBase
 
 '''
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'li4mohid_dockwidget_base.ui'))
 '''
 
-from .li4mohid_dockwidget_base import Ui_li4mohidDockWidgetBase
 
-#class li4mohidDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
+# class li4mohidDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
 
     closingPlugin = pyqtSignal()
@@ -60,7 +59,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         dir = QFileDialog.getExistingDirectory(self, "Select working directory")
 
         if dir:
-            self.APPLICATION_PATH = dir
+            self.application_path = dir
         else:
             pass # Needs to handle closing plugin in case of no dir selected
 
@@ -101,18 +100,19 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
     def apply(self):
 
         hydro = self.comboBoxHydro.currentText()
-        self.app = application(self.APPLICATION_PATH, hydro, self.iface)
+        self.app = Application(self.application_path, hydro, self.iface)
         # Auxiliary layers:
         self.app.hydro.get_vectorLayer()
-        self.app.defineInputLayer()
+        self.app.define_input_layer()
 
     def run(self):
 
         if self.exe is None:
-            self.exe, _ = QFileDialog.getOpenFileName(self,"Choose MOHID executable", "","All Files (*);;Exe Files (*.exe)")
+            self.exe, _ = QFileDialog.getOpenFileName(self, "Choose MOHID executable", "",
+                                                      "All Files (*);;Exe Files (*.exe)")
 
         if self.exe is None:
-            pass # Needs to handle closing plugin in case of no executable is selected
+            pass  # Needs to handle closing plugin in case of no executable is selected
         else:
             QgsMessageLog.logMessage('MOHID executable: %s' % self.exe, 'li4mohid', level=Qgis.Info)
 
@@ -126,39 +126,28 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
             meteo = self.comboBoxWind.currentText()
         else:
             meteo = None
-        print('1')
         self.app.setDates(start, end, output, meteo)
-        print('2')
         # Get defined sources by user:
         self.app.getSources()
-        print('3')
         # Write configuration file:
         self.app.write()
-        print('4')
         # Write auxiliary data:
         self.app.aux_data()
-        print('5')
         # Forcing XML:
         self.app.build_hydro_xml()
-        print('6')
         # Add wind forcing if enabled
         if self.windstate:
             self.app.build_meteo_xml()
-        print('7')
         hydro = self.comboBoxHydro.currentText()
-        print('8')
-        QgsMessageLog.logMessage('%s -i %s/%s.xml -o %s' % (self.exe, self.APPLICATION_PATH, hydro, self.APPLICATION_PATH), 'li4mohid', level=Qgis.Info)
-        print('9')
-        os.chdir(self.APPLICATION_PATH)
-        os.system('%s -i %s/%s.xml -o %s' % (self.exe, self.APPLICATION_PATH, hydro, self.APPLICATION_PATH))
-        print('10')
-        # Model results:
-        reader = outputReader(self.app.APPLICATION_PATH, hydro)
-        print('11')
-        reader.get_layer()
-        print('12')
+        QgsMessageLog.logMessage('%s -i %s/%s.xml -o %s' % (self.exe, self.application_path, hydro, self.application_path), 'li4mohid', level=Qgis.Info)
+        os.chdir(self.application_path)
+        os.system('%s -i %s/%s.xml -o %s' % (self.exe, self.application_path, hydro, self.application_path))
 
-        
+        # Model results:
+        reader = outputReader(self.app.application_path, hydro)
+        reader.get_layer()
+
+
     def checkBoxState(self):
 
         self.windstate = not self.windstate
@@ -169,7 +158,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
 
     def enable_calendar(self, **kwargs):
 
-        grid= modelGrid(self.comboBoxHydro.currentText())
+        grid = ModelGrid(self.comboBoxHydro.currentText())
         hydro_dates = grid.get_dates()
         print('as hydro_dates = ', hydro_dates)
         timespan    = grid.timespan
@@ -177,10 +166,10 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
 
         if self.windstate:
 
-            grid        = modelGrid(self.comboBoxWind.currentText())
+            grid = ModelGrid(self.comboBoxWind.currentText())
             wind_dates = grid.get_dates()
 
-            dates      = [date for date in hydro_dates if date in wind_dates]
+            dates = [date for date in hydro_dates if date in wind_dates]
             timespan = min(timespan, grid.timespan)
 
         else:
