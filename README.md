@@ -6,7 +6,7 @@ LI4MOHID can be used to  input data, run simulations, and visualize results.
 
 This plug-in has been developed under [MyCOAST](http://www.mycoast-project.org) project.
 
-<p align="center"><img src="https://gis4wrf.github.io/assets/images/gis4wrf-demo.gif"></p>
+<p align="center"><img src="https://github.com/pedromontero/li4mohid/blob/README/doc/assets/li4mohid_SC.png"></p>
 <p align="center">Configure, run and visualize a WRF simulation in GIS4WRF</p>
 A QGIS plugin for Mohid Lagrangian, developed under MyCOAST project
 
