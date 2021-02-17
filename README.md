@@ -52,4 +52,4 @@ For usage, please, consult the main [documentation](./doc/MyCoast_LI4MOHID_EN.pd
 * *license:* Copyright (c) INTECMAR 2020. Lincesed under MIT
 * *funding:* MYCOAST  Interreg Atlantic Programme, Project nr. EAPA 285/2016
              http://www.mycoast-project.org
-  <p align="center"><img src="https://github.com/pedromontero/li4mohid/blob/README/doc/assets/MyCoast_Logo_small.png"></p>
+  <p align="center"><img src="./doc/assets/MyCoast_Logo_small.png"></p>
