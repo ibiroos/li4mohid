@@ -49,7 +49,7 @@ For usage, please, consult the main [documentation](./doc/MyCoast_LI4MOHID_EN.pd
 * *author:*
   + Carlos F. Balseiro (4Gotas, cfbalseiro@4gotas.com)
   + Pedro Montero (INTECMAR, pmontero@intecmar.gal)
-* *license:* Copyright (c) INTECMAR 2020. Lincesed under MIT
+* *license:* Copyright (c) INTECMAR 2020. Licensed under MIT
 * *funding:* MYCOAST  Interreg Atlantic Programme, Project nr. EAPA 285/2016
              http://www.mycoast-project.org
   <p align="center"><img src="./doc/assets/MyCoast_Logo_small.png"></p>
