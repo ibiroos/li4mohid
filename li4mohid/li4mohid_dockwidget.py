@@ -61,10 +61,9 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         if dir:
             self.application_path = dir
         else:
-            pass # Needs to handle closing plugin in case of no dir selected
+            pass  # Needs to handle closing plugin in case of no dir selected
 
         self.exe = None
-
 
         self.comboBoxHydro.addItems(['artabro', 
                                      'arousa' ,
@@ -117,9 +116,9 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
             QgsMessageLog.logMessage('MOHID executable: %s' % self.exe, 'li4mohid', level=Qgis.Info)
 
         # Get simulation info:
-        output = 3600 # Needs input from user
-        start  = QDateTime(self.dateTimeEditStart.dateTime()).toPyDateTime()
-        end    = QDateTime(self.dateTimeEditEnd.dateTime()).toPyDateTime()
+        output = 3600  # Needs input from user
+        start = QDateTime(self.dateTimeEditStart.dateTime()).toPyDateTime()
+        end = QDateTime(self.dateTimeEditEnd.dateTime()).toPyDateTime()
 
         # Add wind forcing to application if enabled:
         if self.windstate:
@@ -146,7 +145,6 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         # Model results:
         reader = outputReader(self.app.application_path, hydro)
         reader.get_layer()
-
 
     def checkBoxState(self):
 
