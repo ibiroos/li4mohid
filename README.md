@@ -6,7 +6,7 @@ LI4MOHID can be used to  input data, run simulations, and visualize results.
 
 This plug-in has been developed under [MyCOAST](http://www.mycoast-project.org) project.
 
-<p align="center"><img src="https://github.com/pedromontero/li4mohid/blob/README/doc/assets/li4mohid_SC.png"></p>
+<p align="center"><img src="./doc/assets/li4mohid_SC.png"></p>
 <p align="center">A screenshot of LI4MOHID in QGIS</p>
 
 ## Requierements
@@ -42,7 +42,7 @@ An “oil-spill” icon must appear in the toolbar.
 
 ## Usage
 
-For usage, please, consult the main [documentation](https://github.com/pedromontero/li4mohid/blob/README/doc/MyCoast_LI4MOHID_EN.pdf) 
+For usage, please, consult the main [documentation](./doc/MyCoast_LI4MOHID_EN.pdf) 
 
 
 ## Credits
