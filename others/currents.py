@@ -1,3 +1,5 @@
+
+
 import netCDF4
 import h5py
 import numpy as np
@@ -9,26 +11,26 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox
 
 
 class hydroDataset():
-    def __init__(self, file, type = 'nc'):
-        if file==None:
+    def __init__(self, file, type='nc'):
+        if file == None:
             quit('A netcdf or hdf5 file is needed')
         else:
             self.file
             self.type = type
-            if self.type != 'nc' and self.type !='hdf5':
+            if self.type != 'nc' and self.type != 'hdf5':
                 quit('type must be nc or hdf5')
 
     def read(self):
-        if self.type=='nc':
+        if self.type == 'nc':
             self.ds = netCDF4.Dataset(self.file)
             times_in = getvar_standardname(self.ds, ['time'])
             self.time = netCDF4.num2date(times_in[:], units=times_in.units)[0]
             self.lat = getvar_standardname(self.ds, ['latitude'])[:]
             self.lon = getvar_standardname(self.ds, ['longitude'])[:]
             self.u = getvar_standardname(self.ds, ['surface_eastward_sea_water_velocity',
-                                           'eastward_sea_water_velocity'])[:]
+                                                   'eastward_sea_water_velocity'])[:]
             self.v = getvar_standardname(self.ds, ['surface_northward_sea_water_velocity',
-                                           'northward_sea_water_velocity'])[:]
+                                                   'northward_sea_water_velocity'])[:]
         else:
             self.ds = h5py.File(self.file, 'r')
             self.time = self.ds.get('time')
@@ -43,7 +45,6 @@ class hydroDataset():
 
 
 def add_current_layer(h_ds):
-
     project = QgsProject.instance()
 
     layer = QgsVectorLayer("Point?crs=epsg:4326", "currents", "memory")
@@ -62,14 +63,11 @@ def add_current_layer(h_ds):
                 geom = QgsGeometry.fromPointXY(pt)
                 feature.setGeometry(geom)
                 feature.setAttributes(
-                        [float(h_ds.u[j][i]), float(h_ds.v[j][i]), float(h_ds.mod[j][i]), float(h_ds.dir[j][i])])
+                    [float(h_ds.u[j][i]), float(h_ds.v[j][i]), float(h_ds.mod[j][i]), float(h_ds.dir[j][i])])
                 features.append(feature)
     layer.dataProvider().addFeatures(features)
     project.addMapLayer(layer)
     return layer
-
-
-
 
 
 def unix_time(dt):
@@ -103,9 +101,8 @@ def getvar_longname(f, nome_longs):
     print('long_name = {0} not found'.format(nome_long))
 
 
-
-def hf():
-    file_in = r'http://150.145.136.27:8080/thredds/dodsC/Ibiza_NRT212/2020/2020_02/2020_02_12/HFR-Ibiza-Total_2020_02_12_1700.nc'
+def cur():
+    file_in = r'C:/Users/Pedro/00_TEMP/nc_fields/hydro/MyCOAST_V0_PML_FVCOM_tamar_01hr_2021021600_ANPR.nc'
 
     print('vou a ler {0}'.format(file_in))
 
@@ -119,18 +116,9 @@ def hf():
         spam = f'- {nc_attr}: {value}; \n'
         detailed_text += spam
 
-    # Radial or Total file
-    total = False
-    # if f.getncattr('data_type') == 'HF radar total data':
-    total = True
 
-    # Extension
 
-    lat_min = float(f.getncattr('geospatial_lat_min'))
-    lat_max = float(f.getncattr('geospatial_lat_max'))
-    lon_min = float(f.getncattr('geospatial_lon_min'))
-    lon_max = float(f.getncattr('geospatial_lon_max'))
-    extension = [lat_min, lat_max, lon_min, lon_max]
+
 
     # Variables with time
 
@@ -149,17 +137,19 @@ def hf():
     # v_in = getvar_standardname(f, 'northward_sea_water_velocity')[:]
     print(v_in.shape)
 
-    tempo = netCDF4.num2date(times_in[:], units=times_in.units)[0]
-    times = unix_time(tempo)
-    print(tempo)
+    tempos = netCDF4.num2date(times_in[:], units=times_in.units)
+    for tempo in tempos:
+        times = unix_time(tempo)
+        print(tempo)
 
-    water_u = u_in[:]
-    water_v = v_in[:]
-    water_u = water_u[0][0]
-    water_v = water_v[0][0]
+        water_u = u_in[:]
+        water_v = v_in[:]
+   
+    #water_u = water_u[0]
+    #water_v = water_v[0]
 
-    mod = pow((pow(water_u, 2) + pow(water_v, 2)), .5)
-    dir = (180 * np.arctan2(water_u, water_v)) / pi
+        mod = pow((pow(water_u, 2) + pow(water_v, 2)), .5)
+        dir = (180 * np.arctan2(water_u, water_v)) / pi
 
     f.close()
 
@@ -172,28 +162,29 @@ def hf():
     # msg.exec_()
 
     proyecto = QgsProject.instance()
-    print(proyecto)
+   
 
-    layer = QgsVectorLayer("Point?crs=epsg:4326", "capa_radar", "memory")
-    layer.dataProvider().addAttributes([QgsField("water_u", QVariant.Double),
+    layer = QgsVectorLayer("Point?crs=epsg:4326", "currents", "memory")
+    layer.dataProvider().addAttributes([QgsField("Datetime", QVariant.DateTime),
+                                        QgsField("water_u", QVariant.Double),
                                         QgsField("water_v", QVariant.Double),
                                         QgsField("mod", QVariant.Double),
                                         QgsField("dir", QVariant.Double)])
     layer.updateFields()
     features = []
-
-    if total:
-
+    for t,tempo in enumerate(tempos):
+        tempo_str = tempo.strftime("%Y-%m-%d %H:%M:%S")
+        print('TEMPO: ', tempo_str)
         for i, lon in enumerate(lon_in):
             for j, lat in enumerate(lat_in):
-                if not isnan(water_u[j][i]):
+                if not isnan(water_u[t][j][i]) and water_u[t][j][i]>-30000:
                     feature = QgsFeature()
                     feature.setFields(layer.fields())
                     pt = QgsPointXY(lon, lat)
                     geom = QgsGeometry.fromPointXY(pt)
                     feature.setGeometry(geom)
                     feature.setAttributes(
-                        [float(water_u[j][i]), float(water_v[j][i]), float(mod[j][i]), float(dir[j][i])])
+                    [tempo_str,float(water_u[t][j][i]), float(water_v[t][j][i]), float(mod[t][j][i]), float(dir[t][j][i])])
                     features.append(feature)
     layer.dataProvider().addFeatures(features)
     proyecto.addMapLayer(layer)
@@ -270,6 +261,7 @@ def rampa2(layer):
               '#FF0000']
     lower = sorted(vals)[0]
     upper = sorted(vals)[-1]
+    upper = 1
     step = (upper - lower) / len(colors)
     print(lower, upper, step)
     range_list = []
@@ -296,81 +288,3 @@ def rampa2(layer):
     # proyecto.addMapLayer(layer)
 
 
-def ftle():
-    file_in = r'http://thredds-gfnl.usc.es/thredds/dodsC/MYCOASTLCS/MYCOASTLCS_Vigo_20210216.nc'
-    print('vou a ler {0}'.format(file_in))
-
-    f = netCDF4.Dataset(file_in)
-
-    nc_attrs = f.ncattrs()
-
-    detailed_text = 'NetCDF Global Attributes:\n\n'
-    for nc_attr in nc_attrs:
-        value = '%s' % repr(f.getncattr(nc_attr), )
-        spam = f'- {nc_attr}: {value}; \n'
-        detailed_text += spam
-    msg = QMessageBox()
-    msg.setText(f'file: {file_in}')
-    msg.setInformativeText("fe")
-    msg.setWindowTitle("Open NetCDF")
-    msg.setDetailedText(detailed_text)
-    msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-    msg.exec_()
-
-
-
-    # Variables with time
-
-    times_in = getvar_longname(f, ['time'])
-    print(times_in)
-    tempos = netCDF4.num2date(times_in[:], units=times_in.units)
-    lat_in = getvar_standardname(f, ['latitude'])[:]
-    lon_in = getvar_standardname(f, ['longitude'])[:]
-
-    ftle_in = getvar_standardname(f, ['forward_FTLE'])[:]
-
-
-    tempo = netCDF4.num2date(times_in[:], units=times_in.units)[0]
-    times = unix_time(tempo)
-    print(tempo)
-
-    ftle = ftle_in[:]
-    
-    ftle = ftle[0]
-    print(ftle)
-
-
-
-    f.close()
-
-    msg = QMessageBox()
-    msg.setText(f'file: {file_in}')
-    msg.setInformativeText("fe")
-    msg.setWindowTitle("Open NetCDF")
-    msg.setDetailedText(detailed_text)
-    msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-    msg.exec_()
-
-    proyecto = QgsProject.instance()
-    print(proyecto)
-
-    layer = QgsVectorLayer("Point?crs=epsg:4326", "capa_radar", "memory")
-    layer.dataProvider().addAttributes([QgsField("FTLE", QVariant.Double)])
-    layer.updateFields()
-    features = []
-
-    for i, lon in enumerate(lon_in):
-        for j, lat in enumerate(lat_in):
-            if not isnan(ftle[j][i]):
-                feature = QgsFeature()
-                feature.setFields(layer.fields())
-                pt = QgsPointXY(lon, lat)
-                geom = QgsGeometry.fromPointXY(pt)
-                feature.setGeometry(geom)
-                feature.setAttributes(
-                    [float(ftle[j][i])])
-                features.append(feature)
-    layer.dataProvider().addFeatures(features)
-    proyecto.addMapLayer(layer)
-
-    return layer

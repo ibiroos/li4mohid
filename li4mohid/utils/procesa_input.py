@@ -351,7 +351,6 @@ class Application:
         self.xml = None
         self.XML_INPUTS = None
 
-
     def setDates(self, start, end, output, meteo_in_use):
 
         # Checks whether wind forcing is available
@@ -369,14 +368,22 @@ class Application:
         parameters = self.xml.findall('execution/parameters')[0]  # Only one group per file
 
         parameter = SubElement(parameters,
-                               'parameter',
-                               {'key': "Start", 'value': start.strftime('%Y %m %d %H %M %S'),
-                                'comment': "Date of initial instant",
-                                'units_comment': "space delimited ISO 8601 format up to seconds"})
-        parameter = SubElement(parameters, 'parameter', {'key': "End", 'value': end.strftime('%Y %m %d %H %M %S')  , 'comment':"Date of final instant"  , 'units_comment':"ISO format"})
-        parameter = SubElement(parameters, 'parameter', {'key': "Integrator", 'value': "3"                                , 'comment':"Integration Algorithm 1:Euler, 2:Multi-Step Euler, 3:RK4 (default=1)"})
-        parameter = SubElement(parameters, 'parameter', {'key': "Threads", 'value': "4"                                , 'comment':"Computation threads for shared memory computation (default=auto)"})
-        parameter = SubElement(parameters, 'parameter', {'key': "OutputWriteTime", 'value':"%d" % output                      , 'comment':"Time out data (1/Hz)"    , 'units_comment':"seconds"})
+                               'parameter', {'key': "Start", 'value': start.strftime('%Y %m %d %H %M %S'),
+                                             'comment': "Date of initial instant",
+                                             'units_comment': "space delimited ISO 8601 format up to seconds"})
+        parameter = SubElement(parameters, 'parameter', {'key': "End",
+                                                         'value': end.strftime('%Y %m %d %H %M %S'),
+                                                         'comment': "Date of final instant",
+                                                         'units_comment': "ISO format"})
+        parameter = SubElement(parameters, 'parameter', {'key': "Integrator",
+                                                         'value': "3",
+                                                         'comment': "Integration Algorithm 1:Euler, 2:Multi-Step Euler, 3:RK4 (default=1)"})
+        parameter = SubElement(parameters, 'parameter', {'key': "Threads",
+                                                         'value': "4",
+                                                         'comment': "Computation threads for shared memory computation (default=auto)"})
+        parameter = SubElement(parameters, 'parameter', {'key': "OutputWriteTime",
+                                                         'value': "%d" % output, 'comment': "Time out data (1/Hz)",
+                                                         'units_comment': "seconds"})
 
         # Simulation parameters:
         simulation = self.xml.findall('caseDefinitions/simulation')[0]  # Only one group per file
@@ -403,13 +410,7 @@ class Application:
                             'rate': feature.attributes()[feature.fieldNameIndex('rate')],
                             'start': feature.attributes()[feature.fieldNameIndex('start')],
                             'end': feature.attributes()[feature.fieldNameIndex('end')]}
-            
-            # listado['id'] = feature.attributes()[feature.fieldNameIndex('id')]
-            # listado['name'] = feature.attributes()[feature.fieldNameIndex('name')]
-            # listado['rate'] = feature.attributes()[feature.fieldNameIndex('rate')]
-            # listado['start'] = feature.attributes()[feature.fieldNameIndex('start')]
-            # listado['end'] = feature.attributes()[feature.fieldNameIndex('end')]
-            
+
             for point in feature.geometry().vertices():
                 feature_list['geometry'] = (point.x(), point.y())
             points.append(feature_list)
