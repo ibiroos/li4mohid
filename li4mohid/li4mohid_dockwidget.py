@@ -56,27 +56,27 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-        dir = QFileDialog.getExistingDirectory(self, "Select working directory")
+        application_path = QFileDialog.getExistingDirectory(self, "Select working directory")
 
-        if dir:
-            self.application_path = dir
+        if application_path:
+            self.application_path = application_path
         else:
             pass  # Needs to handle closing plugin in case of no dir selected
 
         self.exe = None
 
         self.comboBoxHydro.addItems(['artabro', 
-                                     'arousa' ,
-                                     'vigo'   , 
-                                     'noia'   , 
-                                     'iberia'  , 
+                                     'arousa',
+                                     'vigo',
+                                     'noia',
+                                     'iberia',
                                      'tamar',
                                      'portugal'])
 
         self.comboBoxWind.addItems(['wrf04km', 
                                     'wrf12km'])
 
-        self.windstate = False
+        self.wind_state = False
         self.checkBoxWind.stateChanged.connect(self.checkBoxState)
 
         self.comboBoxHydro.currentIndexChanged.connect(self.enable_calendar)
@@ -121,7 +121,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         end = QDateTime(self.dateTimeEditEnd.dateTime()).toPyDateTime()
 
         # Add wind forcing to application if enabled:
-        if self.windstate:
+        if self.wind_state:
             meteo = self.comboBoxWind.currentText()
         else:
             meteo = None
@@ -135,7 +135,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         # Forcing XML:
         self.app.build_hydro_xml()
         # Add wind forcing if enabled
-        if self.windstate:
+        if self.wind_state:
             self.app.build_meteo_xml()
         hydro = self.comboBoxHydro.currentText()
         QgsMessageLog.logMessage('%s -i %s/%s.xml -o %s' % (self.exe, self.application_path, hydro, self.application_path), 'li4mohid', level=Qgis.Info)
@@ -148,8 +148,8 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
 
     def checkBoxState(self):
 
-        self.windstate = not self.windstate
-        self.comboBoxWind.setEnabled(self.windstate)
+        self.wind_state = not self.wind_state
+        self.comboBoxWind.setEnabled(self.wind_state)
 
         # Change dates in calendars:
         self.enable_calendar()
@@ -162,7 +162,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         timespan    = grid.timespan
 
 
-        if self.windstate:
+        if self.wind_state:
 
             grid = ModelGrid(self.comboBoxWind.currentText())
             wind_dates = grid.get_dates()
