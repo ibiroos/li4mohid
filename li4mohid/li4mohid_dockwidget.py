@@ -159,8 +159,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         grid = ModelGrid(self.comboBoxHydro.currentText())
         hydro_dates = grid.get_dates()
         print('as hydro_dates = ', hydro_dates)
-        timespan    = grid.timespan
-
+        timespan = grid.timespan
 
         if self.wind_state:
 
@@ -175,7 +174,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
             dates = hydro_dates
 
         self.start = dates[-1]
-        self.end   = dates[0]
+        self.end  = dates[0]
         print(self.start, self.end)
 
         # Available date output files:
@@ -183,12 +182,13 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
 
         self.end += timespan
 
-        QgsMessageLog.logMessage('---> Start: %s End: %s' % (self.start.isoformat(), self.end.isoformat()), 'li4mohid', level=Qgis.Info)
+        QgsMessageLog.logMessage('---> Start: %s End: %s' % (self.start.isoformat(), self.end.isoformat()),
+                                 'li4mohid', level=Qgis.Info)
 
         self.dateTimeEditStart.setDateRange(QDate(self.start), QDate(self.end))
-        self.dateTimeEditEnd.setDateRange  (QDate(self.start), QDate(self.end))
+        self.dateTimeEditEnd.setDateRange(QDate(self.start), QDate(self.end))
 
         self.dateTimeEditStart.setDateTime(QDateTime(self.end))
-        self.dateTimeEditEnd.setDateTime  (QDateTime(self.end))
+        self.dateTimeEditEnd.setDateTime(QDateTime(self.end))
 
 
