@@ -450,7 +450,6 @@ class Application:
         if DEBUG:
             print(self.prettify(self.xml))
 
-
     def aux_data(self):
 
         outputFields = '''<?xml version="1.0" encoding="UTF-8" ?>
