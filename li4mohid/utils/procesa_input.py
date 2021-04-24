@@ -202,7 +202,7 @@ class ModelGrid:
         return list(self.THREDDS_parser.parse_dates())
 
 
-class outputReader:
+class OutputReader:
 
     def __init__(self, path, model):
 

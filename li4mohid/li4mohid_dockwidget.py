@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import QDate, QTime, QDateTime, Qt, QVariant
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsField, QgsMessageLog, Qgis
 
-from .utils import THREDDS_parser, outputReader, ModelGrid, Application
+from .utils import THREDDS_parser, OutputReader, ModelGrid, Application
 from .li4mohid_dockwidget_base import Ui_li4mohidDockWidgetBase
 
 '''
@@ -143,7 +143,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         os.system('%s -i %s/%s.xml -o %s' % (self.exe, self.application_path, hydro, self.application_path))
 
         # Model results:
-        reader = outputReader(self.app.application_path, hydro)
+        reader = OutputReader(self.app.application_path, hydro)
         reader.get_layer()
 
     def checkBoxState(self):
