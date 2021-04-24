@@ -159,7 +159,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
         grid = ModelGrid(self.comboBoxHydro.currentText())
         hydro_dates = grid.get_dates()
         print('as hydro_dates = ', hydro_dates)
-        timespan = grid.timespan
+        timespan = grid.time_span
 
         if self.wind_state:
 
@@ -167,7 +167,7 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
             wind_dates = grid.get_dates()
 
             dates = [date for date in hydro_dates if date in wind_dates]
-            timespan = min(timespan, grid.timespan)
+            timespan = min(timespan, grid.time_span)
 
         else:
 

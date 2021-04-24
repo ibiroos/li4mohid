@@ -148,7 +148,7 @@ class ModelGrid:
         # Time span of grid file predictions:
         time = origen.variables[standard_names_to_var['time']]
         time = num2date(time[:], time.units)
-        self.timespan = time[-1]-time[0]
+        self.time_span = time[-1] - time[0]
 
         if len(self.lon.shape) == 1:
             self.lon, self.lat = np.meshgrid(self.lon, self.lat)
@@ -187,12 +187,11 @@ class ModelGrid:
         proyecto = QgsProject.instance()
         proyecto.addMapLayer(vectorlayer)
 
-    def get_boundingBox(self):
+    def get_bounding_box(self):
         """ Get aproximate bounding box
         :return: Xmin, Xmax, Ymin, Ymax of the bounding box
         :type: float, float, float, float
         """
-
         return self.Xmin, self.Ymin, self.Xmax, self.Ymax
 
     def get_dates(self):
@@ -200,7 +199,6 @@ class ModelGrid:
         :return: a list of dates
         :type: lst
         """
-
         return list(self.THREDDS_parser.parse_dates())
 
 
@@ -392,7 +390,7 @@ class Application:
         timestep       = SubElement(simulation, 'timestep'       ,{'dt':"1200.0", 'units_comment':"seconds (s)"})
 
         # At first, only hydro limits the geographical span of sims:
-        Xmin, Ymin, Xmax, Ymax = self.hydro.get_boundingBox()
+        Xmin, Ymin, Xmax, Ymax = self.hydro.get_bounding_box()
         BoundingBoxMin = SubElement(simulation, 'BoundingBoxMin' ,{'x':"%f" % Xmin   , 'y':"%f" % Ymin, 'z':"-1", 'units_comment':"(deg,deg,m)"})
         BoundingBoxMax = SubElement(simulation, 'BoundingBoxMax' ,{'x':"%f" % Xmax   , 'y':"%f" % Ymax, 'z': "1", 'units_comment':"(deg,deg,m)"})
 
@@ -435,7 +433,6 @@ class Application:
     def prettify(elem):
 
         """Return a pretty-printed XML string for the Element."""
-
         rough_string = ElementTree.tostring(elem, 'utf-8')
         reparsed = minidom.parseString(rough_string)
         return reparsed.toprettyxml(indent="  ")
