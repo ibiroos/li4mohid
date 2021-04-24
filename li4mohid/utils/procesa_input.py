@@ -349,7 +349,7 @@ class Application:
         self.xml = None
         self.XML_INPUTS = None
 
-    def setDates(self, start, end, output, meteo_in_use):
+    def set_dates(self, start, end, output, meteo_in_use):
 
         # Checks whether wind forcing is available
         if meteo_in_use is not None:
@@ -394,7 +394,7 @@ class Application:
         BoundingBoxMin = SubElement(simulation, 'BoundingBoxMin' ,{'x':"%f" % Xmin   , 'y':"%f" % Ymin, 'z':"-1", 'units_comment':"(deg,deg,m)"})
         BoundingBoxMax = SubElement(simulation, 'BoundingBoxMax' ,{'x':"%f" % Xmax   , 'y':"%f" % Ymax, 'z': "1", 'units_comment':"(deg,deg,m)"})
 
-    def getSources(self):
+    def get_sources(self):
 
         # Incoming data from input layer:
         features = self.iface.activeLayer().getFeatures()
@@ -414,15 +414,15 @@ class Application:
             points.append(feature_list)
 
         # Source definition:
-        sourceDefinitions = self.xml.findall('caseDefinitions/sourceDefinitions')[0]  # Only one group per file
+        source_definitions = self.xml.findall('caseDefinitions/sourceDefinitions')[0]  # Only one group per file
 
         # Remove existing child nodes from XML if any:
-        for child in list(sourceDefinitions):
-            sourceDefinitions.remove(child) 
+        for child in list(source_definitions):
+            source_definitions.remove(child) 
 
         for point in points:
 
-            source = SubElement(sourceDefinitions, 'source')
+            source = SubElement(source_definitions, 'source')
             setsource = SubElement(source, 'setsource', {'id':'%d' % point['id'], 'name': point['name']})
             rate       = SubElement(source, 'rate', {'value':'%f' % point['rate'], 'comment':'emission rate (Hz)'})
             active     = SubElement(source, 'active', {'start':'%f' % point['start'], 'end':'%f' % point['end'], 'comment':"example: start='12.7' end='end'; start='0.0' end='95' ", 'units_comment':'seconds (s)'})

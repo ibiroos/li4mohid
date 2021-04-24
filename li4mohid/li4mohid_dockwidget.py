@@ -125,9 +125,9 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
             meteo = self.comboBoxWind.currentText()
         else:
             meteo = None
-        self.app.setDates(start, end, output, meteo)
+        self.app.set_dates(start, end, output, meteo)
         # Get defined sources by user:
-        self.app.getSources()
+        self.app.get_sources()
         # Write configuration file:
         self.app.write()
         # Write auxiliary data:
