@@ -13,7 +13,7 @@ This plug-in has been developed under [MyCOAST](http://www.mycoast-project.org) 
 
 In order to use the plug-in, is required to have installed:
 
-* **QGIS:** QGIS 3.10 LTR is recommended but the plug-in works from 3.8 and up.
+* **QGIS:** QGIS 3.22 LTR or up is recommended.
 * **Lagrangian MOHID:** The lagrangian MOHID model to be executed by the plug-in. The last release
 can be downloaded from [MOHID Lagrangian Github site](https://github.com/Mohid-Water-Modelling-System/MOHID-Lagrangian/tags).
   To install it, just download the release folder to your local computer.
@@ -21,18 +21,11 @@ can be downloaded from [MOHID Lagrangian Github site](https://github.com/Mohid-W
 ## Installation
 
 
-1. Install NetCDF4 and vtk libraries for Python QGIS. To install them we recommend the following steps:
-    1)	Open OSGeo4W Shell
-    2)	Path update, using “py3_env”.
-    3)	In https://www.lfd.uci.edu/~gohlke/pythonlibs/ 
-download:
-          
-        -	cftime-1.0.4-cp37-cp37m-win_amd64.whl
-        -	netCDF4-1.5.3-cp37-cp37m-win_amd64.whl
-        -	VTK-8.2.0-cp37-cp37m-win_amd64.whl
-    4) Install these three packages with
+1. Install VTK library for Python QGIS. To install them we recommend the following steps:
+    1) Open OSGeo4W Shell
+    2) Use next command: pip install VTK
        
-            pip install package.whl
+  *Note: NCDF4 library is now in the OSGeo4W python package.*
 
 2. Install the plug-in.
 
@@ -44,6 +37,10 @@ An “oil-spill” icon must appear in the toolbar.
 
 For usage, please, consult the main [documentation](./doc/MyCoast_LI4MOHID_EN.pdf) 
 
+
+## History
+
+*2022/11/15:* It was updated to QGIS 3.28 and python 3.9. Use with Lagrangian MOHID v 2022 was checked
 
 ## Credits
 * *author:*
