@@ -14,7 +14,7 @@
 * *license:* Copyright (c) 2020 INTECMAR 2020. Lincesed under MIT
 * *funding:* MYCOAST  Interreg Atlantic Programme, Project nr. EAPA 285/2016
              http://www.mycoas-project.org
-* *version:* 0.0.1
+* *version:* 0.0.2
 
 * *Purpose:* All classes to process input from THREDDS
 
@@ -32,7 +32,7 @@ from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 
 import numpy as np
-import ogr
+from osgeo import ogr
 import vtk
 
 from netCDF4 import Dataset, num2date
