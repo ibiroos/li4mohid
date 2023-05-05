@@ -223,7 +223,7 @@ class outputReader:
             if parameter.get('key') == 'End':
                 end_time = datetime.strptime(parameter.get('value'), '%Y %m %d %H %M %S')
             if parameter.get('key') == 'OutputWriteTime':
-                dt = np.float(parameter.get('value'))
+                dt = np.float64(parameter.get('value'))
 
         self.ficheros = glob('%s/%s_?????.vtu' % (self.path, self.model))
 
