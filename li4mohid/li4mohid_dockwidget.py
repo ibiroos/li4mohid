@@ -71,7 +71,8 @@ class li4mohidDockWidget(QtWidgets.QDockWidget, Ui_li4mohidDockWidgetBase):
                                      'noia'   , 
                                      'iberia'  , 
                                      'tamar',
-                                     'portugal'])
+                                     'portugal',
+                                     'cantabrico'])
 
         self.comboBoxWind.addItems(['wrf04km', 
                                     'wrf12km'])
