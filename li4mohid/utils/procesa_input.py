@@ -54,16 +54,16 @@ class THREDDS_parser:
     """Class for parse thredds catalog"""
 
     URL_XML = {
-        'artabro': 'http://193.144.35.143/thredds/catalog/MyCoast/MOHID/artabro/catalog.xml',
-        'arousa': 'http://193.144.35.143/thredds/catalog/MyCoast/MOHID/arousa/catalog.xml',
-        'vigo': 'http://193.144.35.143/thredds/catalog/MyCoast/MOHID/vigo/catalog.xml',
-        'noia': 'http://193.144.35.143/thredds/catalog/MyCoast/MOHID/noia/catalog.xml',
-        'iberia': 'http://193.144.35.143/thredds/catalog/MyCoast/ROMS/iberia/catalog.xml',
+        'artabro': 'https://thredds-meteo.cesga.es/thredds/catalog/MyCoast/MOHID/artabro/catalog.xml',
+        'arousa': 'https://thredds-meteo.cesga.es/catalog/MyCoast/MOHID/arousa/catalog.xml',
+        'vigo': 'https://thredds-meteo.cesga.es//thredds/catalog/MyCoast/MOHID/vigo/catalog.xml',
+        'noia': 'https://thredds-meteo.cesga.es//thredds/catalog/MyCoast/MOHID/noia/catalog.xml',
+        'iberia': 'https://thredds-meteo.cesga.es//thredds/catalog/MyCoast/ROMS/iberia/catalog.xml',
         'tamar': 'https://data.ecosystem-modelling.pml.ac.uk/thredds/catalog/mycoast-all-files/Model/FVCOM/tamar/catalog.xml',
         'portugal': 'http://thredds.maretec.org/thredds/catalog/portugal/catalog.xml',
-        'cantabrico': 'http://193.144.35.143/thredds/catalog/MyCoast/ROMS/cantabrico/catalog.xml',
-        'wrf12km': 'http://193.144.35.143/thredds/catalog/MyCoast/WRF/iberia/catalog.xml',
-        'wrf04km': 'http://193.144.35.143/thredds/catalog/MyCoast/WRF/galicia/catalog.xml',
+        'cantabrico': 'https://thredds-meteo.cesga.es/thredds/catalog/MyCoast/ROMS/cantabrico/catalog.xml',
+        'wrf12km': 'https://thredds-meteo.cesga.es/thredds/catalog/MyCoast/WRF/iberia/catalog.xml',
+        'wrf04km': 'https://thredds-meteo.cesga.es/thredds/catalog/MyCoast/WRF/galicia/catalog.xml',
         }
 
     def __init__(self, model):
@@ -104,16 +104,16 @@ class ModelGrid:
     """An abstraction of different model grids that will be used"""
 
     url_templates = {
-        'artabro': 'http://193.144.35.143/thredds/dodsC/MyCoast/MOHID/artabro/MyCOAST_V1_MeteoGalicia_MOHID_artabro_01hr_%Y%m%d00_PR.ncml',
-        'arousa': 'http://193.144.35.143/thredds/dodsC/MyCoast/MOHID/arousa/MyCOAST_V1_MeteoGalicia_MOHID_arousa_01hr_%Y%m%d00_PR.ncml',
-        'vigo': 'http://193.144.35.143/thredds/dodsC/MyCoast/MOHID/vigo/MyCOAST_V1_MeteoGalicia_MOHID_vigo_01hr_%Y%m%d00_PR.ncml',
-        'noia': 'http://193.144.35.143/thredds/dodsC/MyCoast/MOHID/noia/MyCOAST_V1_MeteoGalicia_MOHID_noia_01hr_%Y%m%d00_PR.ncml',
-        'iberia': 'http://193.144.35.143/thredds/dodsC/MyCoast/ROMS/iberia/MyCOAST_V1_MeteoGalicia_ROMS_iberia_01hr_%Y%m%d00_PR.ncml',
+        'artabro': 'https://thredds-meteo.cesga.es/thredds/dodsC/MyCoast/MOHID/artabro/MyCOAST_V1_MeteoGalicia_MOHID_artabro_01hr_%Y%m%d00_PR.ncml',
+        'arousa': 'https://thredds-meteo.cesga.es/thredds/dodsC/MyCoast/MOHID/arousa/MyCOAST_V1_MeteoGalicia_MOHID_arousa_01hr_%Y%m%d00_PR.ncml',
+        'vigo': 'https://thredds-meteo.cesga.es/thredds/dodsC/MyCoast/MOHID/vigo/MyCOAST_V1_MeteoGalicia_MOHID_vigo_01hr_%Y%m%d00_PR.ncml',
+        'noia': 'https://thredds-meteo.cesga.es/thredds/dodsC/MyCoast/MOHID/noia/MyCOAST_V1_MeteoGalicia_MOHID_noia_01hr_%Y%m%d00_PR.ncml',
+        'iberia': 'https://thredds-meteo.cesga.es/thredds/dodsC/MyCoast/ROMS/iberia/MyCOAST_V1_MeteoGalicia_ROMS_iberia_01hr_%Y%m%d00_PR.ncml',
         'tamar': 'https://data.ecosystem-modelling.pml.ac.uk/thredds/dodsC/mycoast-all-files/Model/FVCOM/tamar/MyCOAST_V0_PML_FVCOM_tamar_01hr_%Y%m%d00_ANPR.ncml',
         'portugal': 'http://thredds.maretec.org/thredds/dodsC/portugal/MyCOAST_V1_IST_MOHID_portugal_03hr_%Y%m%d00_PR.ncml',
-        'cantabrico':'http://193.144.35.143/thredds/dodsC/MyCoast/ROMS/cantabrico/MyCOAST_V1_AZTI_ROMS_cantabrico_01hr_%Y%m%d00_PR.ncml',
-        'wrf12km': 'http://193.144.35.143/thredds/dodsC/MyCoast/WRF/iberia/MyCOAST_V1_MeteoGalicia_WRF_iberia_01hr_%Y%m%d00_PR.ncml',
-        'wrf04km': 'http://193.144.35.143/thredds/dodsC/MyCoast/WRF/galicia/MyCOAST_V1_MeteoGalicia_WRF_galicia_01hr_%Y%m%d00_PR.ncml',
+        'cantabrico': 'https://thredds-meteo.cesga.es/thredds/dodsC/MyCoast/ROMS/cantabrico/MyCOAST_V1_AZTI_ROMS_cantabrico_01hr_%Y%m%d00_PR.ncml',
+        'wrf12km': 'https://thredds-meteo.cesga.es/thredds/dodsC/MyCoast/WRF/iberia/MyCOAST_V1_MeteoGalicia_WRF_iberia_01hr_%Y%m%d00_PR.ncml',
+        'wrf04km': 'https://thredds-meteo.cesga.es/thredds/dodsC/MyCoast/WRF/galicia/MyCOAST_V1_MeteoGalicia_WRF_galicia_01hr_%Y%m%d00_PR.ncml',
     }
 
     def __init__(self, model):
